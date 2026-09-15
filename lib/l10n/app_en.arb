@@ -1,0 +1,191 @@
+{
+  "@@locale": "en",
+  "@@comment_exceptions": "==== Exception & Error Messages ====",
+  "unAuthentication": "Unauthenticated. Please sign in.",
+  "unAuthorization": "Unauthorized action.",
+  "notFoundEntity": "Entity not found.",
+  "invalidInput": "Invalid input.",
+  "badCertificateException": "Bad or untrusted certificate.",
+  "noInternetException": "No Internet connection.",
+  "noInternetConnection": "No internet connection. Please check your network and try again.",
+  "connectionLost": "Connection Lost",
+  "canNotConnectToHost": "Can't connect to host.",
+  "serverUnDefined": "Unexpected server error.",
+  "timeoutException": "Request timed out.",
+  "cancellationException": "Operation was cancelled.",
+  "unknownException": "Something went wrong. Please try again.",
+  "tokenExpired": "Session expired. Please sign in again.",
+  "parseException": "Data parse error.",
+  "retryLabel": "Retry",
+  "refreshLabel": "Refresh",
+  "tryAgain": "Try Again",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "yesLabel": "Yes",
+  "searchLabel": "Search",
+  "continueLabel": "Continue",
+  "language": "Language",
+  "environmentSwitched": "Environment switched successfully! Restart the app to apply changes.",
+  "patchAvailableTitle": "New Update Available",
+  "patchAvailableMessage": "A new patch is available for the app. Would you like to install it now?",
+  "patchInstallNow": "Install Now",
+  "patchLater": "Later",
+  "patchDownloading": "Downloading...",
+  "patchRestarting": "Restarting...",
+  "patchDownloadedSuccess": "Update downloaded successfully",
+  "patchCloseAndReopen": "Close and reopen the app to apply changes.",
+
+  "@@comment_content_language": "==== Bilingual content settings ====",
+  "showArabicTranslations": "Show Arabic Translations",
+  "showArabicTranslationsHint": "Display Arabic alongside English in lessons, examples, and word lists.",
+  "appLanguage": "App Language",
+  "english": "English",
+  "arabic": "العربية (Arabic)",
+
+  "@@comment_grammar": "==== Grammar feature ====",
+  "grammar": "Grammar",
+  "lesson": "Lesson",
+  "practice": "Practice",
+  "examplesInAction": "Examples in Action",
+  "testYourKnowledge": "Test Your Knowledge",
+  "chooseCorrectForm": "Choose the correct form:",
+  "nextRule": "Next Rule",
+  "finishLesson": "Finish Lesson",
+  "mustEnglish": "Must English",
+  "grammarCoreEssential": "GRAMMAR CORE • ESSENTIAL",
+  "grammarTipTitle": "Grammar Tip",
+  "grammarTipDefaultBody": "Did you know? Regular past simple verbs always end in '-ed', but watch out for irregular verbs like 'go' → 'went'!",
+  "noModulesYet": "No modules yet",
+  "noQuestionsYet": "No questions for this lesson yet.",
+
+  "ruleNumber": "Rule {id}",
+  "@ruleNumber": {
+    "placeholders": { "id": { "type": "int" } }
+  },
+  "questionLine": "Q{index}. {question}",
+  "@questionLine": {
+    "placeholders": {
+      "index": { "type": "int" },
+      "question": { "type": "String" }
+    }
+  },
+  "moduleNOfM": "Module {n} of {m}",
+  "@moduleNOfM": {
+    "placeholders": {
+      "n": { "type": "int" },
+      "m": { "type": "int" }
+    }
+  },
+  "focusOnWhileReading": "Focus on {tokens} while reading aloud.",
+  "@focusOnWhileReading": {
+    "placeholders": { "tokens": { "type": "String" } }
+  },
+  "lessonsCount": "{count, plural, =0{No lessons} =1{1 lesson} other{{count} lessons}}",
+  "@lessonsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "rulesCount": "{count, plural, =0{No rules} =1{1 rule} other{{count} rules}}",
+  "@rulesCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "@@comment_dashboard": "==== Dashboard & shell ====",
+  "homeTab": "Home",
+  "learnTab": "Learn",
+  "talkTab": "Talk",
+  "wordsTab": "Words",
+  "profileTab": "Profile",
+
+  "appBrandName": "Bayan",
+  "goodMorning": "Good Morning, {name}",
+  "@goodMorning": { "placeholders": { "name": { "type": "String" } } },
+  "goodAfternoon": "Good Afternoon, {name}",
+  "@goodAfternoon": { "placeholders": { "name": { "type": "String" } } },
+  "goodEvening": "Good Evening, {name}",
+  "@goodEvening": { "placeholders": { "name": { "type": "String" } } },
+  "streakMessage": "{days, plural, =0{Start your streak today!} =1{You're on a 1-day learning streak!} other{You're on a {days}-day learning streak!}}",
+  "@streakMessage": { "placeholders": { "days": { "type": "int" } } },
+
+  "continueLesson": "Continue Lesson",
+  "progress": "Progress",
+  "learningModules": "LEARNING MODULES",
+  "weeklyOverview": "WEEKLY OVERVIEW",
+  "weeklyChange": "{percent, plural, =0{0%} other{+{percent}%}}",
+  "@weeklyChange": { "placeholders": { "percent": { "type": "int" } } },
+
+  "vocabularyLabel": "Vocabulary",
+  "grammarLabel": "Grammar",
+  "sentencesLabel": "Sentences",
+  "phoneticsLabel": "Phonetics",
+  "conversationsLabel": "Conversations",
+  "wordListLabel": "Word List",
+
+  "vocabularyTagline": "{count, plural, =0{No words yet} =1{1 Word} other{{count} Words}}",
+  "@vocabularyTagline": { "placeholders": { "count": { "type": "int" } } },
+  "grammarTagline": "Verb Tenses",
+  "sentencesTagline": "Daily Phrasings",
+  "phoneticsTagline": "Intonation",
+
+  "weeklyStatWords": "Words",
+  "weeklyStatLessons": "Lessons",
+  "weeklyStatHours": "Hours",
+
+  "@@comment_progress": "==== Lesson progress ====",
+  "lessonStatusLocked": "Locked",
+  "lessonStatusCompleted": "Completed",
+  "lessonStatusStart": "Start",
+  "markAsCompleted": "Mark as completed",
+  "allLessonsCompleteTitle": "All lessons completed",
+  "allLessonsCompleteBody": "Great work! You've finished every grammar lesson available.",
+
+  "@@comment_phonetics": "==== Phonetics topics screen ====",
+  "phoneticsLevelPill": "LEVEL {id}: {name}",
+  "@phoneticsLevelPill": {
+    "placeholders": {
+      "id": { "type": "int" },
+      "name": { "type": "String" }
+    }
+  },
+  "phoneticsTopicsCompleted": "{completed} of {total} {total, plural, =1{topic} other{topics}} completed",
+  "@phoneticsTopicsCompleted": {
+    "placeholders": {
+      "completed": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "phoneticsCurrentMastery": "CURRENT MASTERY",
+  "phoneticsCurrentTopicCount": "{title} ({index}/{total})",
+  "@phoneticsCurrentTopicCount": {
+    "placeholders": {
+      "title": { "type": "String" },
+      "index": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+
+  "@@comment_settings": "==== Settings screen rows ====",
+  "settingsVoiceAccent": "Voice Accent",
+  "settingsVoiceGender": "Voice Gender",
+  "settingsLevel": "Difficulty Level",
+  "settingsAppLanguage": "App Language",
+  "settingsRestartTitle": "Restart required",
+  "settingsRestartBody": "Switching level reloads content from scratch. The app will restart now.",
+  "settingsRestartConfirm": "Restart",
+  "voiceAccentUs": "US English",
+  "voiceAccentUk": "UK English",
+  "voiceGenderMale": "Male",
+  "voiceGenderFemale": "Female",
+  "cefrLevelDescriptionA1": "Beginner",
+  "cefrLevelDescriptionA2": "Elementary",
+  "cefrLevelDescriptionB1": "Intermediate",
+  "cefrLevelDescriptionB2": "Upper-Intermediate",
+  "cefrLevelDescriptionC1": "Advanced",
+  "cefrLevelDescriptionC2": "Proficient",
+  "cefrLevelOptionLabel": "{code} — {description}",
+  "@cefrLevelOptionLabel": {
+    "placeholders": {
+      "code": { "type": "String" },
+      "description": { "type": "String" }
+    }
+  }
+}

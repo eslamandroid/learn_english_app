@@ -1,0 +1,7 @@
+{
+  "ar": [
+    "environmentSwitched",
+    "patchAvailableTitle",
+    "patchCloseAndReopen"
+  ]
+}
