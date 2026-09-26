@@ -1,3 +1,4 @@
+import '../../../../core/localization/content_localizer_impl.dart';
 import '../../domain/entities/phonetic_topic.dart';
 
 class PhoneticTopicModel extends PhoneticTopic {
@@ -13,12 +14,19 @@ class PhoneticTopicModel extends PhoneticTopic {
   });
 
   factory PhoneticTopicModel.fromMap(Map<String, Object?> map) {
+    final id = map['id'] as int;
     final sound = map['sound'] as String?;
     return PhoneticTopicModel(
-      id: map['id'] as int,
+      id: id,
       categoryId: map['subId'] as int,
       title: map['title'] as String,
-      titleAr: map['title_ar'] as String,
+      titleAr: ContentLocalizerImpl.instance.localize(
+        sourceTable: 'phoneticTopic',
+        sourceId: id,
+        field: 'title_ar',
+        englishValue: map['title'] as String,
+        arabicValue: map['title_ar'] as String?,
+      ),
       phoneTitle: map['phoneTitle'] as String?,
       word: map['word'] as String?,
       icon: map['icon'] as String?,

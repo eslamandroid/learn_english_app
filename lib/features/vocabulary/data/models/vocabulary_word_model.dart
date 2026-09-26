@@ -1,3 +1,4 @@
+import '../../../../core/localization/content_localizer_impl.dart';
 import '../../domain/entities/vocabulary_word.dart';
 
 class VocabularyWordModel extends VocabularyWord {
@@ -16,11 +17,18 @@ class VocabularyWordModel extends VocabularyWord {
   // vocabulary columns: id, subTopicId, ita, name, desc, imageResourceId,
   // sound, trans, usage.
   factory VocabularyWordModel.fromMap(Map<String, Object?> map) {
+    final id = map['id'] as int;
     return VocabularyWordModel(
-      id: map['id'] as int,
+      id: id,
       subtopicId: map['subTopicId'] as int,
       word: map['name'] as String,
-      wordAr: (map['ita'] as String?) ?? '',
+      wordAr: ContentLocalizerImpl.instance.localize(
+        sourceTable: 'vocabulary',
+        sourceId: id,
+        field: 'ita',
+        englishValue: map['name'] as String,
+        arabicValue: map['ita'] as String?,
+      ),
       description: (map['desc'] as String?) ?? '',
       imageResourceId: (map['imageResourceId'] as String?) ?? '',
       sound: (map['sound'] as String?) ?? '',

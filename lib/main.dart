@@ -22,6 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'base/constants/environment/environment_config.dart';
 import 'base/constants/environment/environment_manager.dart';
 import 'core/database/user_db_migrator.dart';
+import 'core/localization/content_localizer_impl.dart';
 import 'di/config.dart';
 import 'di/di.dart';
 import 'package:sqflite/sqflite.dart';
@@ -74,6 +75,7 @@ Future<void> _initializeServices() async {
     AppVoicePreferences.instance.bind(prefs);
     final userDb = getIt<Database>(instanceName: 'user');
     await UserDbMigrator.runIfNeeded(prefs, userDb);
+    await ContentLocalizerImpl.instance.bind(userDb);
   } catch (e) {
     throw Exception('Failed to initialize services: $e');
   }

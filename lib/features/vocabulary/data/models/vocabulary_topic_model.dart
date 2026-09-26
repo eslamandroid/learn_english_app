@@ -1,3 +1,4 @@
+import '../../../../core/localization/content_localizer_impl.dart';
 import '../../domain/entities/vocabulary_topic.dart';
 
 class VocabularyTopicModel extends VocabularyTopic {
@@ -18,10 +19,17 @@ class VocabularyTopicModel extends VocabularyTopic {
     Map<String, Object?> map, {
     int wordCount = 0,
   }) {
+    final id = map['topicId'] as int;
     return VocabularyTopicModel(
-      id: map['topicId'] as int,
+      id: id,
       title: map['name'] as String,
-      titleAr: (map['ita'] as String?) ?? '',
+      titleAr: ContentLocalizerImpl.instance.localize(
+        sourceTable: 'vocaTopic',
+        sourceId: id,
+        field: 'ita',
+        englishValue: map['name'] as String,
+        arabicValue: map['ita'] as String?,
+      ),
       imageResourceId: (map['imageResourceId'] as String?) ?? '',
       cover: (map['cover'] as String?) ?? '',
       icon: (map['icon'] as String?) ?? '',

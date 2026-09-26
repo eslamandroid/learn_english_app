@@ -3,6 +3,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
 import 'package:learn_english_app/core/database/content_database.dart';
 import 'package:learn_english_app/core/database/user_database.dart';
+import 'package:learn_english_app/core/localization/content_localizer.dart';
+import 'package:learn_english_app/core/localization/content_localizer_impl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -32,4 +34,14 @@ abstract class DatabaseModule {
   @singleton
   @Named('user')
   Future<Database> get userDatabase => UserDatabase.open();
+}
+
+@module
+abstract class LocalizationModule {
+  /// Exposes the [ContentLocalizer] singleton for DI injection in tests and
+  /// future usecases. The singleton is *initialised* by calling
+  /// [ContentLocalizerImpl.instance.bind] in `main._initializeServices()`,
+  /// not here — mirroring the [AppVoicePreferences] pattern.
+  @singleton
+  ContentLocalizer get contentLocalizer => ContentLocalizerImpl.instance;
 }

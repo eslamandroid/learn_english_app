@@ -19,6 +19,8 @@ import 'package:learn_english_app/base/preference/app_preferences.dart' as _i45;
 import 'package:learn_english_app/base/utils/device_id_util.dart' as _i828;
 import 'package:learn_english_app/core/audio/sound_cache.dart' as _i655;
 import 'package:learn_english_app/core/audio/sound_player.dart' as _i552;
+import 'package:learn_english_app/core/localization/content_localizer.dart'
+    as _i347;
 import 'package:learn_english_app/core/speech/speech_recognition_service.dart'
     as _i759;
 import 'package:learn_english_app/core/usecases/get_selected_level.dart'
@@ -146,6 +148,7 @@ extension GetItInjectableX on _i174.GetIt {
   }) async {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final serviceModule = _$ServiceModule();
+    final localizationModule = _$LocalizationModule();
     final databaseModule = _$DatabaseModule();
     await gh.factoryAsync<_i460.SharedPreferences>(
       () => serviceModule.prefs,
@@ -158,6 +161,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => serviceModule.flutterSecureStorage,
     );
     gh.singleton<_i974.FirebaseFirestore>(() => serviceModule.firestore);
+    gh.singleton<_i347.ContentLocalizer>(
+      () => localizationModule.contentLocalizer,
+    );
     gh.lazySingleton<_i371.AudioManager>(
       () => _i371.AudioManager(),
       dispose: (i) => i.close(),
@@ -400,5 +406,7 @@ extension GetItInjectableX on _i174.GetIt {
 }
 
 class _$ServiceModule extends _i214.ServiceModule {}
+
+class _$LocalizationModule extends _i214.LocalizationModule {}
 
 class _$DatabaseModule extends _i214.DatabaseModule {}

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../../../../core/localization/content_localizer_impl.dart';
 import '../../domain/entities/phonetic_example.dart';
 import '../../domain/entities/phonetic_section.dart';
 import '../../domain/entities/phonetic_table_item.dart';
@@ -26,17 +27,36 @@ class PhoneticSectionModel extends PhoneticSection {
   });
 
   factory PhoneticSectionModel.fromMap(Map<String, Object?> map) {
+    final id = map['id'] as int;
     return PhoneticSectionModel(
-      id: map['id'] as int,
+      id: id,
       topicId: map['topic_id'] as int,
       accent: map['accent'] as String,
       sortOrder: map['sort_order'] as int? ?? 0,
       type: map['type'] as String,
       superType: map['super_type'] as String?,
       title: map['title'] as String?,
-      titleAr: map['title_ar'] as String?,
+      // Nullable: preserve null when no Arabic value exists in DB.
+      titleAr: map['title_ar'] == null
+          ? null
+          : ContentLocalizerImpl.instance.localize(
+              sourceTable: 'phonetic_section',
+              sourceId: id,
+              field: 'title_ar',
+              englishValue: map['title'] as String? ?? '',
+              arabicValue: map['title_ar'] as String?,
+            ),
       body: map['body'] as String?,
-      bodyAr: map['body_ar'] as String?,
+      // Nullable: preserve null when no Arabic value exists in DB.
+      bodyAr: map['body_ar'] == null
+          ? null
+          : ContentLocalizerImpl.instance.localize(
+              sourceTable: 'phonetic_section',
+              sourceId: id,
+              field: 'body_ar',
+              englishValue: map['body'] as String? ?? '',
+              arabicValue: map['body_ar'] as String?,
+            ),
       image: _emptyToNull(map['image'] as String?),
       image2: _emptyToNull(map['image2'] as String?),
       sound: _emptyToNull(map['sound'] as String?),

@@ -1,3 +1,4 @@
+import '../../../../core/localization/content_localizer_impl.dart';
 import '../../domain/entities/vocabulary_subtopic.dart';
 
 class VocabularySubtopicModel extends VocabularySubtopic {
@@ -15,11 +16,18 @@ class VocabularySubtopicModel extends VocabularySubtopic {
     Map<String, Object?> map, {
     int wordCount = 0,
   }) {
+    final id = map['id'] as int;
     return VocabularySubtopicModel(
-      id: map['id'] as int,
+      id: id,
       topicId: map['topicId'] as int,
       title: map['name'] as String,
-      titleAr: (map['ita'] as String?) ?? '',
+      titleAr: ContentLocalizerImpl.instance.localize(
+        sourceTable: 'vocaSubTopic',
+        sourceId: id,
+        field: 'ita',
+        englishValue: map['name'] as String,
+        arabicValue: map['ita'] as String?,
+      ),
       imageResourceId: (map['imageResourceId'] as String?) ?? '',
       wordCount: wordCount,
     );
