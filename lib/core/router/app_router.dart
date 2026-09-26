@@ -14,6 +14,9 @@ import '../../features/phonetics/presentation/screens/phonetics_detail_screen.da
 import '../../features/phonetics/presentation/screens/phonetics_topics_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/shell/presentation/screens/main_shell_screen.dart';
+import '../../features/vocabulary/presentation/screens/vocabulary_subtopics_screen.dart';
+import '../../features/vocabulary/presentation/screens/vocabulary_topics_screen.dart';
+import '../../features/vocabulary/presentation/screens/vocabulary_words_screen.dart';
 import '../constants/app_constants.dart';
 import 'app_routes.dart';
 
@@ -79,6 +82,48 @@ abstract class AppRouter {
             ],
           ),
         ],
+      ),
+
+      GoRoute(
+        path: AppRoutes.vocabulary,
+        name: 'vocabulary',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const VocabularyTopicsScreen(),
+        routes: [
+          GoRoute(
+            path: ':topicId',
+            name: 'vocabularySubtopics',
+            builder: (context, state) => VocabularySubtopicsScreen(
+              topicId: int.parse(state.pathParameters['topicId']!),
+              topicTitle: state.extra is String
+                  ? state.extra as String
+                  : null,
+            ),
+            routes: [
+              GoRoute(
+                path: ':subtopicId',
+                name: 'vocabularyWords',
+                builder: (context, state) => VocabularyWordsScreen(
+                  subtopicId:
+                      int.parse(state.pathParameters['subtopicId']!),
+                  subtopicTitle: state.extra is String
+                      ? state.extra as String
+                      : null,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // Sentences module is pushed from the dashboard grid but not yet
+      // implemented — placeholder until it lands.
+      GoRoute(
+        path: AppRoutes.sentences,
+        name: 'sentences',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) =>
+            const _PlaceholderScreen(label: 'Sentences'),
       ),
 
       // Five-tab shell wrapping every primary destination. Each branch keeps

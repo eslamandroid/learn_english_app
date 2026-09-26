@@ -28,9 +28,12 @@ abstract class AppRoutes {
       '/grammar/$topicId/$subtopicId/test';
 
   static const vocabulary                 = '/vocabulary';
-  static const vocabularySubtopics        = '/vocabulary/subtopics';
-  static const vocabularyList             = '/vocabulary/list';
-  static const wordDetail                 = '/vocabulary/word';
+  // Parametric:
+  // /vocabulary/:topicId               → subtopics
+  // /vocabulary/:topicId/:subtopicId   → word list
+  static String vocabularySubtopics(int topicId) => '/vocabulary/$topicId';
+  static String vocabularyWords(int topicId, int subtopicId) =>
+      '/vocabulary/$topicId/$subtopicId';
 
   static const sentences                  = '/sentences';
   static const sentencesSubtopics         = '/sentences/subtopics';

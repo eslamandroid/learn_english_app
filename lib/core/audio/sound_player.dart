@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:injectable/injectable.dart';
 
@@ -43,6 +43,7 @@ class SoundPlayer {
     _audioCompletionSub = _audioManager.completionStream.listen((_) {
       final src = _currentSource;
       if (src != null) {
+        debugPrint('🔊 TTS.complete source=$src');
         _currentSource = null;
         _completionController.add(src);
       }
@@ -50,12 +51,14 @@ class SoundPlayer {
 
     _tts.setCompletionHandler(() {
       if (_currentSource == SoundSource.deviceTts) {
+        debugPrint('🔊 TTS.deviceTts complete');
         _currentSource = null;
         _completionController.add(SoundSource.deviceTts);
       }
     });
-    _tts.setErrorHandler((_) {
+    _tts.setErrorHandler((msg) {
       if (_currentSource == SoundSource.deviceTts) {
+        debugPrint('🔊 TTS.deviceTts error msg=$msg');
         _currentSource = null;
         _completionController.add(SoundSource.deviceTts);
       }
@@ -79,30 +82,49 @@ class SoundPlayer {
     required String cdnUrl,
     required String fallbackText,
     String locale = 'en-US',
+    double rate = 1.0,
   }) async {
+    debugPrint(
+      '🔊 TTS.play url=$cdnUrl fallback="$fallbackText"'
+      ' locale=$locale rate=$rate',
+    );
     await stop();
 
     // 1. Cache
     final cached = await _cache.get(cdnUrl);
     if (cached != null) {
+      debugPrint('🔊 TTS.cache HIT path=${cached.path}');
       _currentSource = SoundSource.cache;
-      await _audioManager.playFile(cached.path, mimeType: 'audio/mpeg');
+      await _audioManager.playFile(
+        cached.path,
+        mimeType: 'audio/mpeg',
+        rate: rate,
+      );
       return SoundSource.cache;
     }
+    debugPrint('🔊 TTS.cache MISS → CDN');
 
     // 2. CDN
     final cdnBytes = await _download(cdnUrl);
     if (cdnBytes != null) {
+      debugPrint('🔊 TTS.cdn OK bytes=${cdnBytes.length}');
       final file = await _cache.store(cdnUrl, cdnBytes);
       _currentSource = SoundSource.cdn;
-      await _audioManager.playFile(file.path, mimeType: 'audio/mpeg');
+      await _audioManager.playFile(
+        file.path,
+        mimeType: 'audio/mpeg',
+        rate: rate,
+      );
       return SoundSource.cdn;
     }
+    debugPrint('🔊 TTS.cdn FAILED → device TTS');
 
     // 3. Device TTS
-    if (await _speakDevice(fallbackText, locale)) {
+    if (await _speakDevice(fallbackText, locale, rate)) {
+      debugPrint('🔊 TTS.deviceTts started text="$fallbackText"');
       return SoundSource.deviceTts;
     }
+    debugPrint('🔊 TTS.deviceTts FAILED → Google TTS');
 
     // 4. Google TTS (unofficial endpoint; best-effort)
     final googleUrl = _googleTtsUrl(fallbackText, locale);
@@ -116,12 +138,18 @@ class SoundPlayer {
       },
     );
     if (googleBytes != null) {
+      debugPrint('🔊 TTS.googleTts OK bytes=${googleBytes.length}');
       final file = await _cache.store(googleKey, googleBytes);
       _currentSource = SoundSource.googleTts;
-      await _audioManager.playFile(file.path, mimeType: 'audio/mpeg');
+      await _audioManager.playFile(
+        file.path,
+        mimeType: 'audio/mpeg',
+        rate: rate,
+      );
       return SoundSource.googleTts;
     }
 
+    debugPrint('🔊 TTS.googleTts FAILED → giving up');
     throw _SoundPlayException('Could not play "$fallbackText"');
   }
 
@@ -129,6 +157,7 @@ class SoundPlayer {
   /// to the `assets/` root, e.g. `sounds/consonants_k.m4a`. Completion is
   /// reported on [completionStream] as [SoundSource.asset].
   Future<SoundSource> playAsset(String assetPath) async {
+    debugPrint('🔊 TTS.playAsset $assetPath');
     await stop();
     _currentSource = SoundSource.asset;
     await _audioManager.playAsset(assetPath);
@@ -137,12 +166,20 @@ class SoundPlayer {
 
   /// Speaks [text] through device TTS, skipping CDN / cache entirely. Used
   /// where the corpus has no pre-recorded audio (e.g. grammar examples).
-  Future<bool> speak(String text, {String locale = 'en-US'}) async {
+  Future<bool> speak(
+    String text, {
+    String locale = 'en-US',
+    double rate = 1.0,
+  }) async {
+    debugPrint('🔊 TTS.speak text="$text" locale=$locale rate=$rate');
     await stop();
-    return _speakDevice(text, locale);
+    return _speakDevice(text, locale, rate);
   }
 
   Future<void> stop() async {
+    if (_currentSource != null) {
+      debugPrint('🔊 TTS.stop was=$_currentSource');
+    }
     if (_currentSource == SoundSource.deviceTts) {
       await _tts.stop();
     }
@@ -181,26 +218,33 @@ class SoundPlayer {
       if (data != null && data.isNotEmpty) {
         return Uint8List.fromList(data);
       }
-    } catch (_) {
-      // swallow — falls through to next tier
+      debugPrint('🔊 TTS.download empty body url=$url');
+    } catch (e) {
+      debugPrint('🔊 TTS.download error url=$url err=$e');
     }
     return null;
   }
 
-  Future<bool> _speakDevice(String text, String locale) async {
+  Future<bool> _speakDevice(String text, String locale, double rate) async {
     try {
       await _tts.setLanguage(locale);
-      await _tts.setSpeechRate(0.45);
+      // flutter_tts's rate scale is different from audioplayers — 0.45 sounds
+      // like natural English on most engines. Multiply by [rate] so the same
+      // slow/normal control affects TTS the same direction as pre-recorded
+      // audio (rate 0.65 → 0.29, rate 1.0 → 0.45).
+      await _tts.setSpeechRate(0.45 * rate);
       await _tts.setPitch(1.0);
       await _tts.awaitSpeakCompletion(false);
       _currentSource = SoundSource.deviceTts;
       final result = await _tts.speak(text);
       if (result != 1) {
+        debugPrint('🔊 TTS.deviceTts speak returned $result — treated as fail');
         _currentSource = null;
         return false;
       }
       return true;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('🔊 TTS.deviceTts exception err=$e');
       _currentSource = null;
       return false;
     }
@@ -216,6 +260,7 @@ class SoundPlayer {
 
   @disposeMethod
   Future<void> dispose() async {
+    debugPrint('🔊 TTS.dispose');
     await _audioCompletionSub?.cancel();
     await _completionController.close();
     await _tts.stop();

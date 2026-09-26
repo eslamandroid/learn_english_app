@@ -73,6 +73,7 @@ class ProgressRepositoryImpl implements ProgressRepository {
     _changes.add(null);
   }
 
+  @override
   @disposeMethod
   Future<void> dispose() => _changes.close();
 }

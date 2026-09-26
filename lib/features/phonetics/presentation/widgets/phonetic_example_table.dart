@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../core/audio/pronunciation_checker.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/bayan_colors.dart';
 import '../../../../core/theme/bayan_typography.dart';
+import '../../../../di/di.dart';
 import '../../domain/entities/phonetic_example.dart';
+import '../../domain/entities/pronunciation_outcome.dart';
+import '../bloc/pronunciation/pronunciation_bloc.dart';
+import '../bloc/pronunciation/pronunciation_event.dart';
+import '../bloc/pronunciation/pronunciation_state.dart';
 import 'bilingual_text.dart';
 
-class PhoneticExampleTable extends StatefulWidget {
+class PhoneticExampleTable extends StatelessWidget {
   final List<PhoneticExample> examples;
   final int? playingExampleId;
   final ValueChanged<PhoneticExample> onPlay;
@@ -20,93 +25,94 @@ class PhoneticExampleTable extends StatefulWidget {
   });
 
   @override
-  State<PhoneticExampleTable> createState() => _PhoneticExampleTableState();
+  Widget build(BuildContext context) {
+    if (examples.isEmpty) return const SizedBox.shrink();
+    return BlocProvider(
+      create: (_) => getIt<PronunciationBloc>(),
+      child: Column(
+        children: [
+          for (var i = 0; i < examples.length; i++) ...[
+            _ExampleRow(
+              example: examples[i],
+              isPlaying: playingExampleId == examples[i].id,
+              onPlay: () => onPlay(examples[i]),
+            ),
+            if (i < examples.length - 1)
+              const SizedBox(height: AppConstants.spacingSm),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
-class _PhoneticExampleTableState extends State<PhoneticExampleTable> {
-  int? _listeningId;
-  final Map<int, String> _heard = {};
-  final Map<int, PronunciationOutcome> _result = {};
+/// One row's `BlocSelector` scope — only this row rebuilds when its own
+/// listening/result state changes, not the whole table.
+class _ExampleRow extends StatelessWidget {
+  final PhoneticExample example;
+  final bool isPlaying;
+  final VoidCallback onPlay;
 
-  @override
-  void dispose() {
-    if (_listeningId != null) PronunciationChecker.instance.stop();
-    super.dispose();
-  }
-
-  Future<void> _onMic(PhoneticExample ex) async {
-    if (_listeningId == ex.id) {
-      await PronunciationChecker.instance.stop();
-      return; // onDone finalizes
-    }
-    if (_listeningId != null) {
-      await PronunciationChecker.instance.stop();
-    }
-
-    setState(() {
-      _listeningId = ex.id;
-      _heard[ex.id] = '';
-      _result.remove(ex.id);
-    });
-
-    final started = await PronunciationChecker.instance.start(
-      onPartial: (text) {
-        if (!mounted || _listeningId != ex.id) return;
-        setState(() => _heard[ex.id] = text);
-      },
-      onDone: () => _finalize(ex),
-    );
-
-    if (!started && mounted) {
-      setState(() {
-        _listeningId = null;
-        _result[ex.id] = PronunciationOutcome.denied;
-      });
-    }
-  }
-
-  void _finalize(PhoneticExample ex) {
-    if (!mounted || _listeningId != ex.id) return;
-    final heard = (_heard[ex.id] ?? '').trim();
-    setState(() {
-      _listeningId = null;
-      if (heard.isEmpty) {
-        _result[ex.id] = PronunciationOutcome.noSpeech;
-      } else {
-        _result[ex.id] = PronunciationChecker.matches(heard, ex.word)
-            ? PronunciationOutcome.correct
-            : PronunciationOutcome.incorrect;
-      }
-    });
-  }
+  const _ExampleRow({
+    required this.example,
+    required this.isPlaying,
+    required this.onPlay,
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (widget.examples.isEmpty) return const SizedBox.shrink();
-    return Column(
-      children: [
-        for (var i = 0; i < widget.examples.length; i++) ...[
-          _ExampleCard(
-            example: widget.examples[i],
-            isPlaying: widget.playingExampleId == widget.examples[i].id,
-            isListening: _listeningId == widget.examples[i].id,
-            heard: _heard[widget.examples[i].id],
-            outcome: _result[widget.examples[i].id],
-            onPlay: () => widget.onPlay(widget.examples[i]),
-            onMic: () => _onMic(widget.examples[i]),
-          ),
-          if (i < widget.examples.length - 1)
-            const SizedBox(height: AppConstants.spacingSm),
-        ],
-      ],
+    return BlocSelector<PronunciationBloc, PronunciationState, _RowData>(
+      selector: (state) => _RowData(
+        isListening: state.activeExampleId == example.id,
+        armed: state.activeExampleId == example.id && state.armed,
+        partial: state.activeExampleId == example.id ? state.partialText : null,
+        attempt: state.attempts[example.id],
+      ),
+      builder: (context, row) {
+        return _ExampleCard(
+          example: example,
+          isPlaying: isPlaying,
+          isListening: row.isListening,
+          armed: row.armed,
+          heard: row.isListening ? row.partial : row.attempt?.heard,
+          outcome: row.attempt?.outcome,
+          onPlay: onPlay,
+          onMic: () {
+            final bloc = context.read<PronunciationBloc>();
+            if (row.isListening) {
+              bloc.add(const StopPronunciationCheck());
+            } else {
+              bloc.add(StartPronunciationCheck(
+                exampleId: example.id,
+                targetWord: example.word,
+              ));
+            }
+          },
+        );
+      },
     );
   }
+}
+
+class _RowData {
+  final bool isListening;
+  final bool armed;
+  final String? partial;
+  final PronunciationAttempt? attempt;
+
+  const _RowData({
+    required this.isListening,
+    this.armed = false,
+    this.partial,
+    this.attempt,
+  });
 }
 
 class _ExampleCard extends StatelessWidget {
   final PhoneticExample example;
   final bool isPlaying;
   final bool isListening;
+  final bool armed;
   final String? heard;
   final PronunciationOutcome? outcome;
   final VoidCallback onPlay;
@@ -116,6 +122,7 @@ class _ExampleCard extends StatelessWidget {
     required this.example,
     required this.isPlaying,
     required this.isListening,
+    required this.armed,
     required this.heard,
     required this.outcome,
     required this.onPlay,
@@ -186,6 +193,7 @@ class _ExampleCard extends StatelessWidget {
             const SizedBox(height: AppConstants.spacingSm),
             _Feedback(
               isListening: isListening,
+              armed: armed,
               heard: heard,
               outcome: outcome,
             ),
@@ -233,11 +241,13 @@ class _RoundButton extends StatelessWidget {
 
 class _Feedback extends StatelessWidget {
   final bool isListening;
+  final bool armed;
   final String? heard;
   final PronunciationOutcome? outcome;
 
   const _Feedback({
     required this.isListening,
+    required this.armed,
     required this.heard,
     required this.outcome,
   });
@@ -245,12 +255,24 @@ class _Feedback extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isListening) {
+      if (!armed) {
+        // Mic tapped, but the engine hasn't confirmed it's actually
+        // capturing yet — telling the user to speak now would be a lie;
+        // this is exactly the "said it too fast and it didn't catch"
+        // window if they don't wait for it.
+        return _strip(
+          bg: BayanColors.primary.withValues(alpha: 0.08),
+          fg: BayanColors.primary,
+          icon: Icons.hourglass_top_rounded,
+          text: 'Getting ready…',
+        );
+      }
       final partial = (heard ?? '').trim();
       return _strip(
         bg: BayanColors.primary.withValues(alpha: 0.08),
         fg: BayanColors.primary,
         icon: Icons.graphic_eq_rounded,
-        text: partial.isEmpty ? 'Listening… speak now' : '“$partial”',
+        text: partial.isEmpty ? 'Speak now' : '“$partial”',
       );
     }
 

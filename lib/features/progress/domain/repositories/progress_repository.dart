@@ -15,4 +15,6 @@ abstract class ProgressRepository {
   /// Broadcasts every write across every module. Subscribers (blocs) typically
   /// re-fetch the snapshot(s) they care about on each event.
   Stream<void> get changes;
+
+  Future<void> dispose();
 }
