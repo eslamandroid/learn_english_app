@@ -21,8 +21,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'base/constants/environment/environment_config.dart';
 import 'base/constants/environment/environment_manager.dart';
+import 'core/database/user_db_migrator.dart';
 import 'di/config.dart';
 import 'di/di.dart';
+import 'package:sqflite/sqflite.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -70,6 +72,8 @@ Future<void> _initializeServices() async {
     final prefs = getIt<SharedPreferences>();
     AppContentLanguage.instance.bind(prefs);
     AppVoicePreferences.instance.bind(prefs);
+    final userDb = getIt<Database>(instanceName: 'user');
+    await UserDbMigrator.runIfNeeded(prefs, userDb);
   } catch (e) {
     throw Exception('Failed to initialize services: $e');
   }

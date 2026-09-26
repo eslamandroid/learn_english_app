@@ -27,7 +27,7 @@ abstract class VocabularyLocalDataSource {
 class VocabularyLocalDataSourceImpl implements VocabularyLocalDataSource {
   final Database _database;
 
-  VocabularyLocalDataSourceImpl(this._database);
+  VocabularyLocalDataSourceImpl(@Named('content') this._database);
 
   @override
   Future<List<VocabularyTopicModel>> getTopics() async {

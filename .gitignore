@@ -79,3 +79,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# SQLite WAL/SHM temporary files
+*.db-shm
+*.db-wal
+
+# Audio verification reports (generated, not source)
+tools/audio_verification/report.json

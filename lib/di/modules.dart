@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
-import 'package:learn_english_app/core/database/database_helper.dart';
+import 'package:learn_english_app/core/database/content_database.dart';
+import 'package:learn_english_app/core/database/user_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -24,5 +25,11 @@ abstract class ServiceModule {
 abstract class DatabaseModule {
   @preResolve
   @singleton
-  Future<Database> get database => DatabaseHelper.initDatabase();
+  @Named('content')
+  Future<Database> get contentDatabase => ContentDatabase.initDatabase();
+
+  @preResolve
+  @singleton
+  @Named('user')
+  Future<Database> get userDatabase => UserDatabase.open();
 }

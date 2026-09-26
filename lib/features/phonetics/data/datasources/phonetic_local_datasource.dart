@@ -25,7 +25,7 @@ abstract class PhoneticLocalDataSource {
 class PhoneticLocalDataSourceImpl implements PhoneticLocalDataSource {
   final Database _database;
 
-  PhoneticLocalDataSourceImpl(this._database);
+  PhoneticLocalDataSourceImpl(@Named('content') this._database);
 
   @override
   Future<List<PhoneticCategoryModel>> getCategories() async {

@@ -7,8 +7,8 @@ import 'package:sqflite/sqflite.dart';
 
 import '../constants/app_constants.dart';
 
-class DatabaseHelper {
-  DatabaseHelper._();
+class ContentDatabase {
+  ContentDatabase._();
 
   static Database? _database;
 

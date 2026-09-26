@@ -1,6 +1,6 @@
 # Task 01 — `user.db` + نقل الـ progress من SharedPreferences
 
-**المرجع:** `PLAN.md` §3.1, §3.3, §11 · **الحالة:** ⬜ لم تبدأ
+**المرجع:** `PLAN.md` §3.1, §3.3, §11 · **الحالة:** ⬜ قيد التنفيذ
 **الاعتماديات:** لا شيء · **يعتمد عليها:** كل المهام من 05 فصاعدًا
 
 ---
@@ -230,4 +230,27 @@ abstract class DatabaseModule {
 ---
 
 ## سجل الجلسة
-_(يملؤه Claude Code في نهاية الجلسة: ما تم، ما لم يتم، قرارات اتُّخذت، أسئلة مفتوحة)_
+
+**الحالة:** ✅ مكتملة — 2026-09-26
+
+### ما تم
+- أُنشئ `content_database.dart` (class `ContentDatabase`) وحُذف `database_helper.dart`
+- أُضيف `userDbFileName = 'user.db'` و`userDbVersion = 1` لـ `app_constants.dart`
+- أُنشئ `user_db_schema.dart` بكل ثوابت الجداول + SQL v1 (6 جداول، 4 indexes)
+- أُنشئ `user_database.dart` يفتح `user.db` بـ `onCreate`/`onUpgrade`/`onConfigure`
+- أُنشئ `user_db_migrator.dart` يُرحّل prefs → user.db مرة واحدة داخل transaction
+- أُعيد كتابة `progress_local_datasource.dart` بـ SQLite بدل SharedPreferences
+- حُدِّث `modules.dart` بـ `@Named('content')` و`@Named('user')` Database
+- أُضيف `@Named('content')` لـ grammar/phonetics/vocabulary datasources
+- شُغِّل `build_runner` — DI config محدَّث صح
+- حُدِّث `main.dart` لاستدعاء `UserDbMigrator.runIfNeeded()` بعد DI
+- أُضيف `sqflite_common_ffi` لـ dev_dependencies
+- كُتبت 15 test (3 ملفات) — كلها تعدي ✅
+- `flutter analyze` — 0 warnings جديدة ✅
+
+### قرارات اتُّخذت
+- `setInProgress(id)` على id مكتمل: يُمسح الـ in_progress الحالي وينتهي (لا يُمس الـ completed) — مطابق للمتطلبات
+- `markCompleted` يستخدم `rawInsert` مع `ON CONFLICT DO UPDATE` لضمان atomic increment لـ `attempts`
+
+### أسئلة مفتوحة
+- لا شيء — المهمة مكتملة بالكامل

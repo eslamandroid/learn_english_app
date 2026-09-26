@@ -7,6 +7,8 @@ abstract class AppConstants {
   // ─── Database ───
   static const dbFileName = 'learn_db.db';
   static const dbAssetPath = 'assets/databases/learn_db.db';
+  static const userDbFileName = 'user.db';
+  static const userDbVersion = 1;
 
   // ─── Audio voices ───
   static const voiceUsMale   = 'us_male';

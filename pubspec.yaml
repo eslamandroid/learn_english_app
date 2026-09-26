@@ -198,6 +198,9 @@ dev_dependencies:
   # Logging
   logging: ^1.3.0
 
+  # In-memory SQLite for tests
+  sqflite_common_ffi: ^2.3.4
+
 # ============================================
 # FLUTTER CONFIGURATION
 # ============================================

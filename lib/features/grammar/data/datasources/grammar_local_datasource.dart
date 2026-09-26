@@ -26,7 +26,7 @@ abstract class GrammarLocalDataSource {
 class GrammarLocalDataSourceImpl implements GrammarLocalDataSource {
   final Database _database;
 
-  GrammarLocalDataSourceImpl(this._database);
+  GrammarLocalDataSourceImpl(@Named('content') this._database);
 
   @override
   Future<List<GrammarTopicModel>> getTopics() async {
