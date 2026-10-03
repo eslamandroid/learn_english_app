@@ -39,6 +39,24 @@ import 'package:learn_english_app/features/dashboard/domain/usecases/get_dashboa
     as _i1026;
 import 'package:learn_english_app/features/dashboard/presentation/bloc/dashboard_bloc.dart'
     as _i432;
+import 'package:learn_english_app/features/dictionary/data/datasources/dictionary_local_datasource.dart'
+    as _i792;
+import 'package:learn_english_app/features/dictionary/data/datasources/my_words_local_datasource.dart'
+    as _i445;
+import 'package:learn_english_app/features/dictionary/data/repositories/dictionary_repository_impl.dart'
+    as _i827;
+import 'package:learn_english_app/features/dictionary/domain/repositories/dictionary_repository.dart'
+    as _i966;
+import 'package:learn_english_app/features/dictionary/domain/usecases/get_my_words.dart'
+    as _i1050;
+import 'package:learn_english_app/features/dictionary/domain/usecases/remove_word_from_my_words.dart'
+    as _i258;
+import 'package:learn_english_app/features/dictionary/domain/usecases/save_word_to_my_words.dart'
+    as _i200;
+import 'package:learn_english_app/features/dictionary/domain/usecases/search_dictionary_words.dart'
+    as _i803;
+import 'package:learn_english_app/features/dictionary/presentation/bloc/dictionary/dictionary_bloc.dart'
+    as _i640;
 import 'package:learn_english_app/features/grammar/data/datasources/grammar_local_datasource.dart'
     as _i787;
 import 'package:learn_english_app/features/grammar/data/repositories/grammar_repository_impl.dart'
@@ -111,6 +129,8 @@ import 'package:learn_english_app/features/progress/domain/usecases/get_grammar_
     as _i749;
 import 'package:learn_english_app/features/progress/domain/usecases/get_phonetics_progress.dart'
     as _i699;
+import 'package:learn_english_app/features/progress/domain/usecases/get_sentences_progress.dart'
+    as _i298;
 import 'package:learn_english_app/features/progress/domain/usecases/mark_grammar_lesson_completed.dart'
     as _i530;
 import 'package:learn_english_app/features/progress/domain/usecases/mark_grammar_lesson_started.dart'
@@ -119,6 +139,32 @@ import 'package:learn_english_app/features/progress/domain/usecases/mark_phoneti
     as _i615;
 import 'package:learn_english_app/features/progress/domain/usecases/mark_phonetic_topic_started.dart'
     as _i227;
+import 'package:learn_english_app/features/progress/domain/usecases/mark_sentences_subtopic_completed.dart'
+    as _i1021;
+import 'package:learn_english_app/features/progress/domain/usecases/mark_sentences_subtopic_started.dart'
+    as _i352;
+import 'package:learn_english_app/features/progress/domain/usecases/record_sentence_seen.dart'
+    as _i844;
+import 'package:learn_english_app/features/sentences/data/datasources/sentences_local_datasource.dart'
+    as _i385;
+import 'package:learn_english_app/features/sentences/data/repositories/sentences_repository_impl.dart'
+    as _i780;
+import 'package:learn_english_app/features/sentences/domain/repositories/sentences_repository.dart'
+    as _i118;
+import 'package:learn_english_app/features/sentences/domain/usecases/get_all_sentence_subtopics.dart'
+    as _i991;
+import 'package:learn_english_app/features/sentences/domain/usecases/get_sentence_subtopics.dart'
+    as _i958;
+import 'package:learn_english_app/features/sentences/domain/usecases/get_sentence_topics.dart'
+    as _i156;
+import 'package:learn_english_app/features/sentences/domain/usecases/get_sentences.dart'
+    as _i983;
+import 'package:learn_english_app/features/sentences/presentation/bloc/sentence_content/sentence_content_bloc.dart'
+    as _i239;
+import 'package:learn_english_app/features/sentences/presentation/bloc/sentence_practice/sentence_practice_bloc.dart'
+    as _i480;
+import 'package:learn_english_app/features/sentences/presentation/bloc/sentence_topics/sentence_topics_bloc.dart'
+    as _i270;
 import 'package:learn_english_app/features/vocabulary/data/datasources/vocabulary_local_datasource.dart'
     as _i778;
 import 'package:learn_english_app/features/vocabulary/data/repositories/vocabulary_repository_impl.dart'
@@ -198,6 +244,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i492.PronunciationBloc>(
       () => _i492.PronunciationBloc(gh<_i759.SpeechRecognitionService>()),
     );
+    gh.factory<_i480.SentencePracticeBloc>(
+      () => _i480.SentencePracticeBloc(gh<_i759.SpeechRecognitionService>()),
+    );
     gh.lazySingleton<_i45.AppPreferences>(
       () => _i45.AppPreferences(
         gh<_i460.SharedPreferences>(),
@@ -223,6 +272,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i154.DashboardRepository>(
       () => _i397.DashboardRepositoryImpl(gh<_i533.DashboardLocalDataSource>()),
     );
+    gh.lazySingleton<_i445.MyWordsLocalDataSource>(
+      () => _i445.MyWordsLocalDataSourceImpl(
+        gh<_i779.Database>(instanceName: 'user'),
+      ),
+    );
     gh.lazySingleton<_i828.DeviceIdUtil>(
       () => _i828.DeviceIdUtil(gh<_i460.SharedPreferences>()),
     );
@@ -233,6 +287,14 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i900.ProgressRepository>(
       () => _i953.ProgressRepositoryImpl(gh<_i52.ProgressLocalDataSource>()),
       dispose: (i) => i.dispose(),
+    );
+    gh.lazySingleton<_i385.SentencesLocalDataSource>(
+      () => _i385.SentencesLocalDataSourceImpl(
+        gh<_i779.Database>(instanceName: 'content'),
+      ),
+    );
+    gh.lazySingleton<_i118.SentencesRepository>(
+      () => _i780.SentencesRepositoryImpl(gh<_i385.SentencesLocalDataSource>()),
     );
     gh.factory<_i124.ChangeLanguageUsecase>(
       () => _i124.ChangeLanguageUsecase(gh<_i901.LanguageRepository>()),
@@ -256,6 +318,11 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i779.Database>(instanceName: 'content'),
       ),
     );
+    gh.lazySingleton<_i792.DictionaryLocalDataSource>(
+      () => _i792.DictionaryLocalDataSourceImpl(
+        gh<_i779.Database>(instanceName: 'content'),
+      ),
+    );
     gh.lazySingleton<_i189.VocabularyRepository>(
       () =>
           _i901.VocabularyRepositoryImpl(gh<_i778.VocabularyLocalDataSource>()),
@@ -266,8 +333,21 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i530.MarkGrammarLessonCompleted>(
       () => _i530.MarkGrammarLessonCompleted(gh<_i900.ProgressRepository>()),
     );
+    gh.factory<_i1021.MarkSentencesSubtopicCompleted>(
+      () =>
+          _i1021.MarkSentencesSubtopicCompleted(gh<_i900.ProgressRepository>()),
+    );
     gh.factory<_i699.GetPhoneticsProgress>(
       () => _i699.GetPhoneticsProgress(gh<_i900.ProgressRepository>()),
+    );
+    gh.factory<_i352.MarkSentencesSubtopicStarted>(
+      () => _i352.MarkSentencesSubtopicStarted(gh<_i900.ProgressRepository>()),
+    );
+    gh.factory<_i844.RecordSentenceSeen>(
+      () => _i844.RecordSentenceSeen(gh<_i900.ProgressRepository>()),
+    );
+    gh.factory<_i298.GetSentencesProgress>(
+      () => _i298.GetSentencesProgress(gh<_i900.ProgressRepository>()),
     );
     gh.factory<_i615.MarkPhoneticTopicCompleted>(
       () => _i615.MarkPhoneticTopicCompleted(gh<_i900.ProgressRepository>()),
@@ -292,6 +372,27 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i830.ObserveLanguageUsecase>(),
       ),
     );
+    gh.factory<_i156.GetSentenceTopics>(
+      () => _i156.GetSentenceTopics(gh<_i118.SentencesRepository>()),
+    );
+    gh.factory<_i991.GetAllSentenceSubtopics>(
+      () => _i991.GetAllSentenceSubtopics(gh<_i118.SentencesRepository>()),
+    );
+    gh.factory<_i983.GetSentences>(
+      () => _i983.GetSentences(gh<_i118.SentencesRepository>()),
+    );
+    gh.factory<_i958.GetSentenceSubtopics>(
+      () => _i958.GetSentenceSubtopics(gh<_i118.SentencesRepository>()),
+    );
+    gh.factory<_i239.SentenceContentBloc>(
+      () => _i239.SentenceContentBloc(
+        gh<_i983.GetSentences>(),
+        gh<_i552.SoundPlayer>(),
+        gh<_i352.MarkSentencesSubtopicStarted>(),
+        gh<_i1021.MarkSentencesSubtopicCompleted>(),
+        gh<_i844.RecordSentenceSeen>(),
+      ),
+    );
     gh.factory<_i707.GetGrammarSubtopics>(
       () => _i707.GetGrammarSubtopics(gh<_i973.GrammarRepository>()),
     );
@@ -312,6 +413,21 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i178.PhoneticRepository>(
       () => _i818.PhoneticRepositoryImpl(gh<_i858.PhoneticLocalDataSource>()),
+    );
+    gh.lazySingleton<_i966.DictionaryRepository>(
+      () => _i827.DictionaryRepositoryImpl(
+        gh<_i792.DictionaryLocalDataSource>(),
+        gh<_i445.MyWordsLocalDataSource>(),
+      ),
+      dispose: (i) => i.dispose(),
+    );
+    gh.factory<_i270.SentenceTopicsBloc>(
+      () => _i270.SentenceTopicsBloc(
+        gh<_i156.GetSentenceTopics>(),
+        gh<_i991.GetAllSentenceSubtopics>(),
+        gh<_i298.GetSentencesProgress>(),
+        gh<_i900.ProgressRepository>(),
+      ),
     );
     gh.factory<_i432.DashboardBloc>(
       () => _i432.DashboardBloc(
@@ -360,6 +476,18 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i735.GetPhoneticSections>(
       () => _i735.GetPhoneticSections(gh<_i178.PhoneticRepository>()),
     );
+    gh.factory<_i258.RemoveWordFromMyWords>(
+      () => _i258.RemoveWordFromMyWords(gh<_i966.DictionaryRepository>()),
+    );
+    gh.factory<_i1050.GetMyWords>(
+      () => _i1050.GetMyWords(gh<_i966.DictionaryRepository>()),
+    );
+    gh.factory<_i200.SaveWordToMyWords>(
+      () => _i200.SaveWordToMyWords(gh<_i966.DictionaryRepository>()),
+    );
+    gh.factory<_i803.SearchDictionaryWords>(
+      () => _i803.SearchDictionaryWords(gh<_i966.DictionaryRepository>()),
+    );
     gh.factory<_i558.VocabularyTopicsBloc>(
       () => _i558.VocabularyTopicsBloc(
         gh<_i706.GetVocabularyTopics>(),
@@ -391,6 +519,16 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i882.GetPhoneticTopics>(),
         gh<_i699.GetPhoneticsProgress>(),
         gh<_i906.GetSelectedLevel>(),
+      ),
+    );
+    gh.factory<_i640.DictionaryBloc>(
+      () => _i640.DictionaryBloc(
+        gh<_i803.SearchDictionaryWords>(),
+        gh<_i200.SaveWordToMyWords>(),
+        gh<_i258.RemoveWordFromMyWords>(),
+        gh<_i1050.GetMyWords>(),
+        gh<_i966.DictionaryRepository>(),
+        gh<_i552.SoundPlayer>(),
       ),
     );
     gh.factory<_i867.PhoneticCategoriesBloc>(
