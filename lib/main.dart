@@ -23,6 +23,7 @@ import 'base/constants/environment/environment_config.dart';
 import 'base/constants/environment/environment_manager.dart';
 import 'core/database/user_db_migrator.dart';
 import 'core/localization/content_localizer_impl.dart';
+import 'core/utils/sentences_view_mode_preference.dart';
 import 'di/config.dart';
 import 'di/di.dart';
 import 'package:sqflite/sqflite.dart';
@@ -73,6 +74,7 @@ Future<void> _initializeServices() async {
     final prefs = getIt<SharedPreferences>();
     AppContentLanguage.instance.bind(prefs);
     AppVoicePreferences.instance.bind(prefs);
+    SentencesViewModePreference.instance.bind(prefs);
     final userDb = getIt<Database>(instanceName: 'user');
     await UserDbMigrator.runIfNeeded(prefs, userDb);
     await ContentLocalizerImpl.instance.bind(userDb);

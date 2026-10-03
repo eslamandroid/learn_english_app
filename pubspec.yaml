@@ -106,6 +106,8 @@ dependencies:
   shorebird_code_push: ^2.0.5
   cached_network_image: ^3.4.1
   flutter_cache_manager: ^3.4.1
+  # SVG rendering — used by SentenceTopicIllustration for ph_*.svg assets.
+  flutter_svg: ^2.2.0
 
 
   # ============================================
@@ -200,6 +202,10 @@ dev_dependencies:
 
   # In-memory SQLite for tests
   sqflite_common_ffi: ^2.3.4
+
+  # BLoC testing
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.4
 
 # ============================================
 # FLUTTER CONFIGURATION

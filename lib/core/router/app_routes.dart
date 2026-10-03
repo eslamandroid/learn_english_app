@@ -35,9 +35,12 @@ abstract class AppRoutes {
   static String vocabularyWords(int topicId, int subtopicId) =>
       '/vocabulary/$topicId/$subtopicId';
 
-  static const sentences                  = '/sentences';
-  static const sentencesSubtopics         = '/sentences/subtopics';
-  static const sentencePractice           = '/sentences/practice';
+  static const sentences = '/sentences';
+  // Parametric:
+  // /sentences/:topicId/:subtopicId   → lesson (topics screen jumps here
+  // directly from the expanded topic sublist — no separate subtopics screen).
+  static String sentenceContent(int topicId, int subtopicId) =>
+      '/sentences/$topicId/$subtopicId';
 
   static const conversations              = '/conversations';
   static const conversationLessons        = '/conversations/lessons';

@@ -27,13 +27,19 @@ class UserDatabase {
           for (final sql in UserDbSchema.v1Statements) {
             await txn.execute(sql);
           }
+          for (final sql in UserDbSchema.v2Statements) {
+            await txn.execute(sql);
+          }
         });
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        switch (oldVersion) {
-          case 1:
-            break;
-        }
+        await db.transaction((txn) async {
+          if (oldVersion < 2) {
+            for (final sql in UserDbSchema.v2Statements) {
+              await txn.execute(sql);
+            }
+          }
+        });
       },
     );
 

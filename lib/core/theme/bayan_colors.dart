@@ -68,6 +68,25 @@ abstract class BayanColors {
   static const success              = Color(0xFF22C55E);
   static const warning              = Color(0xFFF59E0B);
 
+  // ─── Sentences redesign tokens (per TASK_sentences_ui_redesign §0) ───
+  // Kept here so other features can reuse them without duplication.
+  static const screenBg             = Color(0xFFF4F6FB);
+  static const cardBg               = Color(0xFFFFFFFF);
+  static const primaryTint          = Color(0xFFE3ECFA);
+  static const tileTint             = Color(0xFFEEF2FA);
+  static const wellBg               = Color(0xFFF7F9FC);
+  static const divider              = Color(0xFFE3E8F2);
+  static const textMuted            = Color(0xFF6B7390);
+  static const successStrong        = Color(0xFF16A34A);
+  static const successTint          = Color(0xFFDCFCE7);
+  static const successFg            = Color(0xFF15803D);
+  static const warn                 = Color(0xFFF2A33A);
+  static const warnTint             = Color(0xFFFFF4E3);
+  static const warnFg               = Color(0xFF8A4B00);
+  static const warnHighlight        = Color(0xFFFFD59A);
+  static const warnUnderline        = Color(0xFFC2410C);
+  static const dotInactive          = Color(0xFFC9D3E6);
+
   // ─── Text aliases ───
   static const textPrimary          = onSurface;
   static const textSecondary        = onSurfaceVariant;

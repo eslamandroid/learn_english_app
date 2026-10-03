@@ -6,6 +6,7 @@ abstract class UserDbSchema {
   static const tDailyActivity = 'daily_activity';
   static const tShadowingAttempt = 'shadowing_attempt';
   static const tMyWordList = 'my_word_list';
+  static const tSentenceLessonProgress = 'sentence_lesson_progress';
 
   // ─── source_table values (must match content.db table names exactly) ─────
   static const srcGrammarSubTopics = 'grammar_sub_topics';
@@ -114,6 +115,19 @@ abstract class UserDbSchema {
     CREATE UNIQUE INDEX idx_myword_word ON $tMyWordList(word COLLATE NOCASE)
   ''';
 
+  // ─── v2: per-lesson sentence progress ───────────────────────────────────
+  // Drives the lesson sublist "9 / 16" / "Done" visualisation in the topics
+  // screen. [lessonId] == subTopicId from content.db. [seen] is the max page
+  // index visited; [completedAt] is set when "Mark as complete" is tapped.
+  static const createSentenceLessonProgress = '''
+    CREATE TABLE $tSentenceLessonProgress (
+      lessonId     INTEGER PRIMARY KEY,
+      seen         INTEGER NOT NULL DEFAULT 0,
+      total        INTEGER NOT NULL DEFAULT 0,
+      completedAt  TEXT
+    )
+  ''';
+
   static const List<String> v1Statements = [
     createUserSettings,
     createUserProgress,
@@ -125,5 +139,9 @@ abstract class UserDbSchema {
     createShadowingAttemptIndex,
     createMyWordList,
     createMyWordListIndex,
+  ];
+
+  static const List<String> v2Statements = [
+    createSentenceLessonProgress,
   ];
 }

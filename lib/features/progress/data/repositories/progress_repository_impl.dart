@@ -4,6 +4,8 @@ import 'package:injectable/injectable.dart';
 
 import '../../domain/entities/grammar_progress.dart';
 import '../../domain/entities/phonetics_progress.dart';
+import '../../domain/entities/sentence_lesson_progress.dart';
+import '../../domain/entities/sentences_progress.dart';
 import '../../domain/repositories/progress_repository.dart';
 import '../datasources/progress_local_datasource.dart';
 
@@ -70,6 +72,64 @@ class ProgressRepositoryImpl implements ProgressRepository {
     final completed = await _local.getCompletedPhoneticTopics();
     if (completed.contains(topicId)) return;
     await _local.markPhoneticTopicCompleted(topicId);
+    _changes.add(null);
+  }
+
+  // ─── Sentences ────────────────────────────────────────────────────────
+  @override
+  Future<SentencesProgress> getSentencesProgress() async {
+    final rows = await _local.getSentenceLessonRows();
+    return SentencesProgress(
+      completedSubtopicIds: await _local.getCompletedSentencesSubtopics(),
+      inProgressSubtopicId: await _local.getInProgressSentencesSubtopic(),
+      lessons: {
+        for (final r in rows.values)
+          r.lessonId: SentenceLessonProgress(
+            lessonId: r.lessonId,
+            seen: r.seen,
+            total: r.total,
+            completedAt: DateTime.tryParse(r.completedAt ?? ''),
+          ),
+      },
+    );
+  }
+
+  @override
+  Future<void> markSentencesSubtopicStarted(int subtopicId) async {
+    final completed = await _local.getCompletedSentencesSubtopics();
+    if (completed.contains(subtopicId)) return;
+    final existing = await _local.getInProgressSentencesSubtopic();
+    if (existing == subtopicId) return;
+    await _local.setInProgressSentencesSubtopic(subtopicId);
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> markSentencesSubtopicCompleted(int subtopicId) async {
+    final completed = await _local.getCompletedSentencesSubtopics();
+    final rows = await _local.getSentenceLessonRows();
+    final total = rows[subtopicId]?.total ?? 0;
+    if (!completed.contains(subtopicId)) {
+      await _local.markSentencesSubtopicCompleted(subtopicId);
+    }
+    await _local.markSentenceLessonCompleted(
+      lessonId: subtopicId,
+      total: total,
+    );
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> recordSentenceSeen({
+    required int lessonId,
+    required int seen,
+    required int total,
+  }) async {
+    await _local.recordSentenceLessonSeen(
+      lessonId: lessonId,
+      seen: seen,
+      total: total,
+    );
     _changes.add(null);
   }
 

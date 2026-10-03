@@ -15,6 +15,45 @@ abstract class ProgressLocalDataSource {
   Future<int?> getInProgressPhoneticTopic();
   Future<void> setInProgressPhoneticTopic(int? id);
   Future<void> markPhoneticTopicCompleted(int id);
+
+  // ─── Sentences (subtopics) ────────────────────────────────────────────
+  Future<Set<int>> getCompletedSentencesSubtopics();
+  Future<int?> getInProgressSentencesSubtopic();
+  Future<void> setInProgressSentencesSubtopic(int? id);
+  Future<void> markSentencesSubtopicCompleted(int id);
+
+  // ─── Sentences per-lesson rows (v2) ──────────────────────────────────
+  /// Returns every row of `sentence_lesson_progress`, keyed by lessonId.
+  Future<Map<int, SentenceLessonProgressRow>> getSentenceLessonRows();
+
+  /// Upserts the per-lesson row, bumping [seen] to max(existing, [seen])
+  /// and keeping [total] authoritative. Does not touch `completedAt`.
+  Future<void> recordSentenceLessonSeen({
+    required int lessonId,
+    required int seen,
+    required int total,
+  });
+
+  /// Sets `seen = total` and stamps `completedAt = ISO now`.
+  Future<void> markSentenceLessonCompleted({
+    required int lessonId,
+    required int total,
+  });
+}
+
+/// Plain row carrier between the data layer and the repository mapper.
+class SentenceLessonProgressRow {
+  final int lessonId;
+  final int seen;
+  final int total;
+  final String? completedAt;
+
+  const SentenceLessonProgressRow({
+    required this.lessonId,
+    required this.seen,
+    required this.total,
+    this.completedAt,
+  });
 }
 
 @LazySingleton(as: ProgressLocalDataSource)
@@ -132,4 +171,72 @@ class ProgressLocalDataSourceImpl implements ProgressLocalDataSource {
   @override
   Future<void> markPhoneticTopicCompleted(int id) =>
       _markCompleted(UserDbSchema.srcPhoneticTopic, id);
+
+  // ─── Sentences ────────────────────────────────────────────────────────
+
+  @override
+  Future<Set<int>> getCompletedSentencesSubtopics() =>
+      _getCompleted(UserDbSchema.srcSentencesSubTopic);
+
+  @override
+  Future<int?> getInProgressSentencesSubtopic() =>
+      _getInProgress(UserDbSchema.srcSentencesSubTopic);
+
+  @override
+  Future<void> setInProgressSentencesSubtopic(int? id) =>
+      _setInProgress(UserDbSchema.srcSentencesSubTopic, id);
+
+  @override
+  Future<void> markSentencesSubtopicCompleted(int id) =>
+      _markCompleted(UserDbSchema.srcSentencesSubTopic, id);
+
+  // ─── Sentences per-lesson rows (v2) ──────────────────────────────────
+
+  @override
+  Future<Map<int, SentenceLessonProgressRow>> getSentenceLessonRows() async {
+    final rows = await _db.query(UserDbSchema.tSentenceLessonProgress);
+    return {
+      for (final r in rows)
+        r['lessonId'] as int: SentenceLessonProgressRow(
+          lessonId: r['lessonId'] as int,
+          seen: r['seen'] as int? ?? 0,
+          total: r['total'] as int? ?? 0,
+          completedAt: r['completedAt'] as String?,
+        ),
+    };
+  }
+
+  @override
+  Future<void> recordSentenceLessonSeen({
+    required int lessonId,
+    required int seen,
+    required int total,
+  }) async {
+    // Keep max(seen) across repeat visits; preserve any existing completedAt.
+    await _db.rawInsert('''
+      INSERT INTO ${UserDbSchema.tSentenceLessonProgress}
+        (lessonId, seen, total, completedAt)
+      VALUES (?, ?, ?, NULL)
+      ON CONFLICT(lessonId) DO UPDATE SET
+        seen  = MAX(seen, excluded.seen),
+        total = excluded.total
+    ''', [lessonId, seen, total]);
+  }
+
+  @override
+  Future<void> markSentenceLessonCompleted({
+    required int lessonId,
+    required int total,
+  }) async {
+    final now = DateTime.now().toIso8601String();
+    await _db.rawInsert('''
+      INSERT INTO ${UserDbSchema.tSentenceLessonProgress}
+        (lessonId, seen, total, completedAt)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(lessonId) DO UPDATE SET
+        seen        = excluded.total,
+        total       = excluded.total,
+        completedAt = excluded.completedAt
+    ''', [lessonId, total, total, now]);
+  }
 }
