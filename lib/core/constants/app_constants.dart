@@ -7,6 +7,8 @@ abstract class AppConstants {
   // ─── Database ───
   static const dbFileName = 'learn_db.db';
   static const dbAssetPath = 'assets/databases/learn_db.db';
+  static const userDbFileName = 'user.db';
+  static const userDbVersion = 2;
 
   // ─── Audio voices ───
   static const voiceUsMale   = 'us_male';
@@ -32,6 +34,8 @@ abstract class AppConstants {
   static const prefLastOpenedDate      = 'last_opened_date';
   static const prefShowArabicContent   = 'show_arabic_content';
   static const prefContentEmphasisLang = 'content_emphasis_lang';
+  static const prefSentencesViewMode   = 'sentences_view_mode';
+  static const prefConversationViewMode = 'conversation_view_mode';
 
   // ─── Spacing (matches Tailwind spec in design doc) ───
   static const spacingXs = 4.0;

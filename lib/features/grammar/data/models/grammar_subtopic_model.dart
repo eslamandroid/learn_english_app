@@ -1,3 +1,4 @@
+import '../../../../core/localization/content_localizer_impl.dart';
 import '../../domain/entities/grammar_subtopic.dart';
 
 class GrammarSubtopicModel extends GrammarSubtopic {
@@ -18,13 +19,28 @@ class GrammarSubtopicModel extends GrammarSubtopic {
     int ruleCount = 0,
     bool hasTest = false,
   }) {
+    final id = map['id'] as int;
     return GrammarSubtopicModel(
-      id: map['id'] as int,
+      id: id,
       topicId: map['topicId'] as int,
       title: map['title'] as String,
-      titleAr: map['titleAr'] as String? ?? '',
+      titleAr: ContentLocalizerImpl.instance.localize(
+        sourceTable: 'grammar_sub_topics',
+        sourceId: id,
+        field: 'titleAr',
+        englishValue: map['title'] as String,
+        arabicValue: map['titleAr'] as String?,
+      ),
       description: map['description'] as String?,
-      descriptionAr: map['descriptionAr'] as String?,
+      descriptionAr: map['descriptionAr'] == null
+          ? null
+          : ContentLocalizerImpl.instance.localize(
+              sourceTable: 'grammar_sub_topics',
+              sourceId: id,
+              field: 'descriptionAr',
+              englishValue: map['description'] as String? ?? '',
+              arabicValue: map['descriptionAr'] as String?,
+            ),
       ruleCount: ruleCount,
       hasTest: hasTest,
     );

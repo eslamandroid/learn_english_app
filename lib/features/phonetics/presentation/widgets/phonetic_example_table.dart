@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/bayan_colors.dart';
 import '../../../../core/theme/bayan_typography.dart';
+import '../../../../core/widgets/play_my_voice_button.dart';
 import '../../../../di/di.dart';
 import '../../domain/entities/phonetic_example.dart';
 import '../../domain/entities/pronunciation_outcome.dart';
@@ -76,6 +77,7 @@ class _ExampleRow extends StatelessWidget {
           armed: row.armed,
           heard: row.isListening ? row.partial : row.attempt?.heard,
           outcome: row.attempt?.outcome,
+          recordingPath: row.attempt?.recordingPath,
           onPlay: onPlay,
           onMic: () {
             final bloc = context.read<PronunciationBloc>();
@@ -115,6 +117,7 @@ class _ExampleCard extends StatelessWidget {
   final bool armed;
   final String? heard;
   final PronunciationOutcome? outcome;
+  final String? recordingPath;
   final VoidCallback onPlay;
   final VoidCallback onMic;
 
@@ -125,6 +128,7 @@ class _ExampleCard extends StatelessWidget {
     required this.armed,
     required this.heard,
     required this.outcome,
+    required this.recordingPath,
     required this.onPlay,
     required this.onMic,
   });
@@ -196,6 +200,7 @@ class _ExampleCard extends StatelessWidget {
               armed: armed,
               heard: heard,
               outcome: outcome,
+              recordingPath: recordingPath,
             ),
           ],
         ],
@@ -244,12 +249,14 @@ class _Feedback extends StatelessWidget {
   final bool armed;
   final String? heard;
   final PronunciationOutcome? outcome;
+  final String? recordingPath;
 
   const _Feedback({
     required this.isListening,
     required this.armed,
     required this.heard,
     required this.outcome,
+    required this.recordingPath,
   });
 
   @override
@@ -339,6 +346,12 @@ class _Feedback extends StatelessWidget {
               style: BayanTypography.labelMedium.copyWith(color: fg),
             ),
           ),
+          // Replay button only appears once the session is done (not while
+          // listening) and only if the recorder actually produced a file.
+          if (!isListening && recordingPath != null) ...[
+            const SizedBox(width: 6),
+            PlayMyVoiceButton(recordingPath: recordingPath),
+          ],
         ],
       ),
     );

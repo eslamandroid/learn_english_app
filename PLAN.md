@@ -83,7 +83,8 @@
 | الحالي | التغيير |
 |---|---|
 | 9 جداول `level_*` | جدول واحد `content_level(source_table, source_id, level)` مع index |
-| `grammar_topics` / `grammar_sub_topics` / `grammar_test` | **يُبقى مؤقتًا** لأن الكود الحالي يقرأ منها؛ يُحذف `grammar_test` فقط (test كـ TEXT واحد لا يُستخدم). المراجعة النهائية عند بناء grammar practice |
+| `grammar_topics` / `grammar_sub_topics` / `grammar_test` | **تبقى كما هي بدون أي حذف مؤقتًا** (قرار إسلام: لا حذف من الـ DB حتى إشعار آخر). `grammar_test` غير مستخدم فعليًا في الكود لكن يُترك مكانه |
+| 9 جداول `level_*` القديمة | **تبقى كما هي بجانب** `content_level` الجديد — لا حذف حتى التأكد من الاستقرار على أرض الواقع، ثم مهمة حذف منفصلة صريحة لاحقًا |
 | `grammar_content` (ids فقط) | يُضاف `sub_topic_id` لربطه بـ `grammar_sub_topics` |
 | `my_word_list` | **يُحذف** من content.db (ينتقل لـ user.db) |
 | `audio_files` | يبقى كما هو. لا `remote_url` — الـ URL = `AUDIO_BASE_URL + file_path` |

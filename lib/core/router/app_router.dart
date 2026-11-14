@@ -14,6 +14,15 @@ import '../../features/phonetics/presentation/screens/phonetics_detail_screen.da
 import '../../features/phonetics/presentation/screens/phonetics_topics_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/shell/presentation/screens/main_shell_screen.dart';
+import '../../features/conversation/presentation/screens/conversation_categories_screen.dart';
+import '../../features/conversation/presentation/screens/role_play_player_screen.dart';
+import '../../features/conversation/presentation/screens/role_play_select_screen.dart';
+import '../../features/conversation/presentation/screens/conversation_lessons_screen.dart';
+import '../../features/conversation/presentation/screens/conversation_player_screen.dart';
+import '../../features/dictionary/presentation/screens/dictionary_screen.dart';
+import '../../features/sentences/presentation/screens/sentence_content_screen.dart';
+import '../../features/sentences/presentation/screens/sentence_topics_screen.dart';
+import '../../features/sentences/presentation/widgets/sentence_lesson_args.dart';
 import '../../features/vocabulary/presentation/screens/vocabulary_subtopics_screen.dart';
 import '../../features/vocabulary/presentation/screens/vocabulary_topics_screen.dart';
 import '../../features/vocabulary/presentation/screens/vocabulary_words_screen.dart';
@@ -116,14 +125,33 @@ abstract class AppRouter {
         ],
       ),
 
-      // Sentences module is pushed from the dashboard grid but not yet
-      // implemented — placeholder until it lands.
       GoRoute(
         path: AppRoutes.sentences,
         name: 'sentences',
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) =>
-            const _PlaceholderScreen(label: 'Sentences'),
+        builder: (context, state) => const SentenceTopicsScreen(),
+        routes: [
+          // Lesson is reached directly from the expanded topic sublist —
+          // the separate subtopics screen was removed in the UI redesign.
+          GoRoute(
+            path: ':topicId/:subtopicId',
+            name: 'sentenceContent',
+            builder: (context, state) {
+              final extra = state.extra;
+              final args = extra is SentenceLessonArgs
+                  ? extra
+                  : (extra is String
+                      ? SentenceLessonArgs(subtopicTitle: extra)
+                      : null);
+              return SentenceContentScreen(
+                subtopicId:
+                    int.parse(state.pathParameters['subtopicId']!),
+                subtopicTitle: args?.subtopicTitle,
+                topicIconKey: args?.topicIconKey,
+              );
+            },
+          ),
+        ],
       ),
 
       // Five-tab shell wrapping every primary destination. Each branch keeps
@@ -183,7 +211,66 @@ abstract class AppRouter {
                 path: AppRoutes.conversations,
                 name: 'conversations',
                 builder: (context, state) =>
-                    const _PlaceholderScreen(label: 'Conversations'),
+                    const ConversationCategoriesScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':catId',
+                    name: 'conversationLessons',
+                    builder: (context, state) => ConversationLessonsScreen(
+                      categoryId:
+                          int.parse(state.pathParameters['catId']!),
+                      categoryTitle: state.extra is String
+                          ? state.extra as String
+                          : null,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: ':lessonId',
+                        name: 'conversationPlayer',
+                        builder: (context, state) =>
+                            ConversationPlayerScreen(
+                          lessonId:
+                              int.parse(state.pathParameters['lessonId']!),
+                          lessonTitle: state.extra is String
+                              ? state.extra as String
+                              : null,
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'roleplay',
+                            name: 'rolePlaySelect',
+                            builder: (context, state) =>
+                                RolePlaySelectScreen(
+                              categoryId: int.parse(
+                                  state.pathParameters['catId']!),
+                              lessonId: int.parse(
+                                  state.pathParameters['lessonId']!),
+                              lessonTitle: state.extra is String
+                                  ? state.extra as String
+                                  : null,
+                            ),
+                            routes: [
+                              GoRoute(
+                                path: ':character',
+                                name: 'rolePlayPlayer',
+                                builder: (context, state) =>
+                                    RolePlayPlayerScreen(
+                                  lessonId: int.parse(
+                                      state.pathParameters['lessonId']!),
+                                  character: Uri.decodeComponent(
+                                      state.pathParameters['character']!),
+                                  lessonTitle: state.extra is String
+                                      ? state.extra as String
+                                      : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
@@ -195,8 +282,7 @@ abstract class AppRouter {
               GoRoute(
                 path: AppRoutes.wordList,
                 name: 'wordList',
-                builder: (context, state) =>
-                    const _PlaceholderScreen(label: 'Word list'),
+                builder: (context, state) => const DictionaryScreen(),
               ),
             ],
           ),
@@ -217,19 +303,6 @@ abstract class AppRouter {
       ),
     ],
   );
-}
-
-class _PlaceholderScreen extends StatelessWidget {
-  final String label;
-  const _PlaceholderScreen({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(label)),
-      body: Center(child: Text('$label screen — not yet implemented')),
-    );
-  }
 }
 
 class _ErrorScreen extends StatelessWidget {
