@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/bayan_colors.dart';
 import '../../../../core/theme/bayan_typography.dart';
 import '../../../../core/utils/voice_preferences.dart';
+import '../../../../core/widgets/play_my_voice_button.dart';
 import '../../../../shared/enums/playback_speed.dart';
 import '../../domain/entities/sentence_item.dart';
 import '../bloc/sentence_practice/sentence_practice_state.dart';
@@ -51,9 +52,13 @@ class SentenceCardLarge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showResult =
+    // While the mic is live we must NOT render the previous attempt's
+    // RepeatResultBox — a stale "YOU SAID · 60%" sitting under the sentence
+    // the user is now re-trying reads as the current result (TASK 12.2 §B).
+    // The listening pattern is handled by `_HintLine` below.
+    final showResult = !isListening &&
         attempt?.outcome == SentencePracticeOutcome.assessed &&
-            attempt?.assessment != null;
+        attempt?.assessment != null;
     final illustrationHeight = showResult ? 150.0 : 190.0;
 
     return Container(
@@ -113,6 +118,7 @@ class SentenceCardLarge extends StatelessWidget {
                   RepeatResultBox(
                     assessment: attempt!.assessment!,
                     onTryAgain: onTryAgain,
+                    recordingPath: attempt!.recordingPath,
                   ),
                 ],
                 const SizedBox(height: 20),
@@ -201,6 +207,15 @@ class _HintLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (icon, color, text) = _resolve();
+    // Replay only applies after a non-assessed failure (noSpeech / denied /
+    // unavailable with a usable recording). Assessed outcomes already carry
+    // the replay button inside the RepeatResultBox above the hint, so
+    // showing a second one here would be a duplicate.
+    final att = attempt;
+    final showReplay = !isListening &&
+        att != null &&
+        att.outcome != SentencePracticeOutcome.assessed &&
+        att.recordingPath != null;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -217,6 +232,10 @@ class _HintLine extends StatelessWidget {
             ),
           ),
         ),
+        if (showReplay) ...[
+          const SizedBox(width: 4),
+          PlayMyVoiceButton(recordingPath: att.recordingPath),
+        ],
       ],
     );
   }

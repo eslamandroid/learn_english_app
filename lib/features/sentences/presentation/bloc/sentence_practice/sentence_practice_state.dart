@@ -20,10 +20,16 @@ class SentencePracticeAttempt {
   final SentenceAssessment? assessment;
   final String heard;
 
+  /// Absolute path to the user's recorded take for this attempt, if the
+  /// parallel recorder in [SpeechRecognitionService] produced one. Null
+  /// when the recorder couldn't start — see TASK 12 §3.
+  final String? recordingPath;
+
   const SentencePracticeAttempt({
     required this.outcome,
     required this.heard,
     this.assessment,
+    this.recordingPath,
   });
 }
 

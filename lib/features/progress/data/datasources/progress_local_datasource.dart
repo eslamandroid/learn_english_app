@@ -22,6 +22,12 @@ abstract class ProgressLocalDataSource {
   Future<void> setInProgressSentencesSubtopic(int? id);
   Future<void> markSentencesSubtopicCompleted(int id);
 
+  // ─── Conversation (lessons) ──────────────────────────────────────────
+  Future<Set<int>> getCompletedConversationLessons();
+  Future<int?> getInProgressConversationLesson();
+  Future<void> setInProgressConversationLesson(int? id);
+  Future<void> markConversationLessonCompleted(int id);
+
   // ─── Sentences per-lesson rows (v2) ──────────────────────────────────
   /// Returns every row of `sentence_lesson_progress`, keyed by lessonId.
   Future<Map<int, SentenceLessonProgressRow>> getSentenceLessonRows();
@@ -189,6 +195,24 @@ class ProgressLocalDataSourceImpl implements ProgressLocalDataSource {
   @override
   Future<void> markSentencesSubtopicCompleted(int id) =>
       _markCompleted(UserDbSchema.srcSentencesSubTopic, id);
+
+  // ─── Conversation ────────────────────────────────────────────────────
+
+  @override
+  Future<Set<int>> getCompletedConversationLessons() =>
+      _getCompleted(UserDbSchema.srcConversationLesson);
+
+  @override
+  Future<int?> getInProgressConversationLesson() =>
+      _getInProgress(UserDbSchema.srcConversationLesson);
+
+  @override
+  Future<void> setInProgressConversationLesson(int? id) =>
+      _setInProgress(UserDbSchema.srcConversationLesson, id);
+
+  @override
+  Future<void> markConversationLessonCompleted(int id) =>
+      _markCompleted(UserDbSchema.srcConversationLesson, id);
 
   // ─── Sentences per-lesson rows (v2) ──────────────────────────────────
 

@@ -1,3 +1,4 @@
+import '../entities/conversation_progress.dart';
 import '../entities/grammar_progress.dart';
 import '../entities/phonetics_progress.dart';
 import '../entities/sentences_progress.dart';
@@ -25,6 +26,11 @@ abstract class ProgressRepository {
     required int seen,
     required int total,
   });
+
+  // ─── Conversation ────────────────────────────────────────────────────
+  Future<ConversationProgress> getConversationProgress();
+  Future<void> markConversationLessonStarted(int lessonId);
+  Future<void> markConversationLessonCompleted(int lessonId);
 
   /// Broadcasts every write across every module. Subscribers (blocs) typically
   /// re-fetch the snapshot(s) they care about on each event.

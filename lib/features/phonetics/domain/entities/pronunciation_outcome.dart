@@ -5,7 +5,16 @@ class PronunciationAttempt {
   final PronunciationOutcome outcome;
   final String heard;
 
-  const PronunciationAttempt({required this.outcome, required this.heard});
+  /// Absolute path to the user's recorded take for this attempt. Null when
+  /// the parallel recorder couldn't start (permission, platform, non-fatal
+  /// failure) — see TASK 12 §3.
+  final String? recordingPath;
+
+  const PronunciationAttempt({
+    required this.outcome,
+    required this.heard,
+    this.recordingPath,
+  });
 
   bool get isCorrect => outcome == PronunciationOutcome.correct;
 }

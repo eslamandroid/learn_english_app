@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/bayan_colors.dart';
 import '../../../../core/theme/bayan_typography.dart';
 import '../../../../core/utils/voice_preferences.dart';
+import '../../../../core/widgets/play_my_voice_button.dart';
 import '../../../../shared/enums/playback_speed.dart';
 import '../../domain/entities/sentence_item.dart';
 import '../bloc/sentence_practice/sentence_practice_state.dart';
@@ -49,9 +50,13 @@ class SentenceCardRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showResult =
+    // While the mic is live, drop back to the hint line (which shows the
+    // current partial transcript) rather than the previous RepeatResultBox —
+    // a stale "YOU SAID · 60%" over the mic-live sentence misleads the user
+    // into thinking the current take has already been scored (TASK 12.2 §B).
+    final showResult = !isListening &&
         attempt?.outcome == SentencePracticeOutcome.assessed &&
-            attempt?.assessment != null;
+        attempt?.assessment != null;
 
     return Container(
       decoration: BoxDecoration(
@@ -156,6 +161,7 @@ class SentenceCardRow extends StatelessWidget {
             RepeatResultBox(
               assessment: attempt!.assessment!,
               onTryAgain: onTryAgain,
+              recordingPath: attempt!.recordingPath,
             )
           else
             _hintLine(),
@@ -172,6 +178,13 @@ class SentenceCardRow extends StatelessWidget {
 
   Widget _hintLine() {
     final (icon, color, text) = _resolveHint();
+    // In list mode the hint line is reached only when `showResult` is false
+    // (the assessed branch above renders RepeatResultBox instead). So any
+    // non-null attempt here is a non-assessed failure — exactly where the
+    // replay should sit so the user can still hear what the mic captured.
+    final att = attempt;
+    final showReplay =
+        !isListening && att != null && att.recordingPath != null;
     return Row(
       children: [
         Icon(icon, size: 13, color: color),
@@ -186,6 +199,10 @@ class SentenceCardRow extends StatelessWidget {
             ),
           ),
         ),
+        if (showReplay) ...[
+          const SizedBox(width: 4),
+          PlayMyVoiceButton(recordingPath: att.recordingPath),
+        ],
       ],
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/bayan_colors.dart';
 import '../../../../core/theme/bayan_typography.dart';
+import '../../../../core/widgets/play_my_voice_button.dart';
 import '../../../../features/phonetics/domain/entities/pronunciation_outcome.dart';
 import '../../../../features/phonetics/presentation/bloc/pronunciation/pronunciation_bloc.dart';
 import '../../../../features/phonetics/presentation/bloc/pronunciation/pronunciation_event.dart';
@@ -344,7 +345,7 @@ class _FeedbackLine extends StatelessWidget {
     }
     final att = attempt;
     if (att == null) return const SizedBox.shrink();
-    return switch (att.outcome) {
+    final pill = switch (att.outcome) {
       PronunciationOutcome.correct => _Pill(
           icon: Icons.check_circle_rounded,
           color: BayanColors.success,
@@ -373,6 +374,18 @@ class _FeedbackLine extends StatelessWidget {
           text: 'Speech recognition is unavailable.',
         ),
     };
+    // Replay sits just outside the result pill so it's always findable even
+    // when the pill colour makes additional iconography feel busy inside.
+    if (att.recordingPath == null) return pill;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Flexible(child: pill),
+        const SizedBox(width: 6),
+        PlayMyVoiceButton(recordingPath: att.recordingPath),
+      ],
+    );
   }
 }
 

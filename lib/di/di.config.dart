@@ -29,6 +29,26 @@ import 'package:learn_english_app/core/usecases/set_selected_level.dart'
     as _i333;
 import 'package:learn_english_app/core/utils/audio_manager.dart' as _i371;
 import 'package:learn_english_app/di/modules.dart' as _i214;
+import 'package:learn_english_app/features/conversation/data/datasources/conversation_local_datasource.dart'
+    as _i697;
+import 'package:learn_english_app/features/conversation/data/repositories/conversation_repository_impl.dart'
+    as _i809;
+import 'package:learn_english_app/features/conversation/domain/repositories/conversation_repository.dart'
+    as _i389;
+import 'package:learn_english_app/features/conversation/domain/usecases/get_conversation_categories.dart'
+    as _i628;
+import 'package:learn_english_app/features/conversation/domain/usecases/get_conversation_lessons.dart'
+    as _i820;
+import 'package:learn_english_app/features/conversation/domain/usecases/get_conversation_lines.dart'
+    as _i253;
+import 'package:learn_english_app/features/conversation/presentation/bloc/conversation_categories/conversation_categories_bloc.dart'
+    as _i886;
+import 'package:learn_english_app/features/conversation/presentation/bloc/conversation_lessons/conversation_lessons_bloc.dart'
+    as _i912;
+import 'package:learn_english_app/features/conversation/presentation/bloc/conversation_player/conversation_player_bloc.dart'
+    as _i990;
+import 'package:learn_english_app/features/conversation/presentation/bloc/role_play/role_play_bloc.dart'
+    as _i357;
 import 'package:learn_english_app/features/dashboard/data/datasources/dashboard_local_datasource.dart'
     as _i533;
 import 'package:learn_english_app/features/dashboard/data/repositories/dashboard_repository_impl.dart'
@@ -123,6 +143,8 @@ import 'package:learn_english_app/features/progress/data/repositories/progress_r
     as _i953;
 import 'package:learn_english_app/features/progress/domain/repositories/progress_repository.dart'
     as _i900;
+import 'package:learn_english_app/features/progress/domain/usecases/get_conversation_progress.dart'
+    as _i779;
 import 'package:learn_english_app/features/progress/domain/usecases/get_current_grammar_lesson.dart'
     as _i442;
 import 'package:learn_english_app/features/progress/domain/usecases/get_grammar_progress.dart'
@@ -131,6 +153,10 @@ import 'package:learn_english_app/features/progress/domain/usecases/get_phonetic
     as _i699;
 import 'package:learn_english_app/features/progress/domain/usecases/get_sentences_progress.dart'
     as _i298;
+import 'package:learn_english_app/features/progress/domain/usecases/mark_conversation_lesson_completed.dart'
+    as _i335;
+import 'package:learn_english_app/features/progress/domain/usecases/mark_conversation_lesson_started.dart'
+    as _i91;
 import 'package:learn_english_app/features/progress/domain/usecases/mark_grammar_lesson_completed.dart'
     as _i530;
 import 'package:learn_english_app/features/progress/domain/usecases/mark_grammar_lesson_started.dart'
@@ -318,6 +344,11 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i779.Database>(instanceName: 'content'),
       ),
     );
+    gh.lazySingleton<_i697.ConversationLocalDataSource>(
+      () => _i697.ConversationLocalDataSourceImpl(
+        gh<_i779.Database>(instanceName: 'content'),
+      ),
+    );
     gh.lazySingleton<_i792.DictionaryLocalDataSource>(
       () => _i792.DictionaryLocalDataSourceImpl(
         gh<_i779.Database>(instanceName: 'content'),
@@ -358,6 +389,16 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i749.GetGrammarProgress>(
       () => _i749.GetGrammarProgress(gh<_i900.ProgressRepository>()),
     );
+    gh.factory<_i779.GetConversationProgress>(
+      () => _i779.GetConversationProgress(gh<_i900.ProgressRepository>()),
+    );
+    gh.factory<_i335.MarkConversationLessonCompleted>(
+      () =>
+          _i335.MarkConversationLessonCompleted(gh<_i900.ProgressRepository>()),
+    );
+    gh.factory<_i91.MarkConversationLessonStarted>(
+      () => _i91.MarkConversationLessonStarted(gh<_i900.ProgressRepository>()),
+    );
     gh.lazySingleton<_i973.GrammarRepository>(
       () => _i220.GrammarRepositoryImpl(gh<_i787.GrammarLocalDataSource>()),
     );
@@ -372,6 +413,11 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i830.ObserveLanguageUsecase>(),
       ),
     );
+    gh.lazySingleton<_i389.ConversationRepository>(
+      () => _i809.ConversationRepositoryImpl(
+        gh<_i697.ConversationLocalDataSource>(),
+      ),
+    );
     gh.factory<_i156.GetSentenceTopics>(
       () => _i156.GetSentenceTopics(gh<_i118.SentencesRepository>()),
     );
@@ -384,6 +430,15 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i958.GetSentenceSubtopics>(
       () => _i958.GetSentenceSubtopics(gh<_i118.SentencesRepository>()),
     );
+    gh.factory<_i253.GetConversationLines>(
+      () => _i253.GetConversationLines(gh<_i389.ConversationRepository>()),
+    );
+    gh.factory<_i628.GetConversationCategories>(
+      () => _i628.GetConversationCategories(gh<_i389.ConversationRepository>()),
+    );
+    gh.factory<_i820.GetConversationLessons>(
+      () => _i820.GetConversationLessons(gh<_i389.ConversationRepository>()),
+    );
     gh.factory<_i239.SentenceContentBloc>(
       () => _i239.SentenceContentBloc(
         gh<_i983.GetSentences>(),
@@ -391,6 +446,14 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i352.MarkSentencesSubtopicStarted>(),
         gh<_i1021.MarkSentencesSubtopicCompleted>(),
         gh<_i844.RecordSentenceSeen>(),
+      ),
+    );
+    gh.factory<_i990.ConversationPlayerBloc>(
+      () => _i990.ConversationPlayerBloc(
+        gh<_i253.GetConversationLines>(),
+        gh<_i552.SoundPlayer>(),
+        gh<_i91.MarkConversationLessonStarted>(),
+        gh<_i335.MarkConversationLessonCompleted>(),
       ),
     );
     gh.factory<_i707.GetGrammarSubtopics>(
@@ -445,6 +508,24 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i1024.GetVocabularyWords>(
       () => _i1024.GetVocabularyWords(gh<_i189.VocabularyRepository>()),
+    );
+    gh.factory<_i886.ConversationCategoriesBloc>(
+      () => _i886.ConversationCategoriesBloc(
+        gh<_i628.GetConversationCategories>(),
+      ),
+    );
+    gh.factory<_i357.RolePlayBloc>(
+      () => _i357.RolePlayBloc(
+        gh<_i253.GetConversationLines>(),
+        gh<_i552.SoundPlayer>(),
+      ),
+    );
+    gh.factory<_i912.ConversationLessonsBloc>(
+      () => _i912.ConversationLessonsBloc(
+        gh<_i820.GetConversationLessons>(),
+        gh<_i779.GetConversationProgress>(),
+        gh<_i900.ProgressRepository>(),
+      ),
     );
     gh.factory<_i27.GrammarTopicsBloc>(
       () => _i27.GrammarTopicsBloc(

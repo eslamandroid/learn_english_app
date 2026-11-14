@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/speech/sentence_assessment.dart';
 import '../../../../core/theme/bayan_colors.dart';
 import '../../../../core/theme/bayan_typography.dart';
+import '../../../../core/widgets/play_my_voice_button.dart';
 
 /// "YOU SAID · 75%" result box shown under the sentence after an STT attempt.
 ///
@@ -14,10 +15,15 @@ class RepeatResultBox extends StatelessWidget {
   final SentenceAssessment assessment;
   final VoidCallback onTryAgain;
 
+  /// Absolute path to the user's recorded take for this attempt, if the
+  /// parallel recorder produced one (TASK 12). Null hides the replay affordance.
+  final String? recordingPath;
+
   const RepeatResultBox({
     super.key,
     required this.assessment,
     required this.onTryAgain,
+    this.recordingPath,
   });
 
   bool get _isGreat => assessment.score >= 0.85;
@@ -55,6 +61,10 @@ class RepeatResultBox extends StatelessWidget {
                   ),
                 ),
               ),
+              if (recordingPath != null) ...[
+                PlayMyVoiceButton(recordingPath: recordingPath),
+                const SizedBox(width: 4),
+              ],
               GestureDetector(
                 onTap: onTryAgain,
                 behavior: HitTestBehavior.opaque,

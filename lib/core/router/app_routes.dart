@@ -43,8 +43,19 @@ abstract class AppRoutes {
       '/sentences/$topicId/$subtopicId';
 
   static const conversations              = '/conversations';
-  static const conversationLessons        = '/conversations/lessons';
-  static const conversationPlayer         = '/conversations/player';
+  // Parametric:
+  // /conversations/:catId                   → lessons
+  // /conversations/:catId/:lessonId         → player (Chat or Pager, chosen
+  // by ConversationViewModePreference).
+  static String conversationLessons(int catId) => '/conversations/$catId';
+  static String conversationPlayer(int catId, int lessonId) =>
+      '/conversations/$catId/$lessonId';
+  // Role-play layered on top of the same lesson route tree. The result
+  // screen is a transient full-screen push, not a GoRoute (TASK 13 §1).
+  static String rolePlaySelect(int catId, int lessonId) =>
+      '/conversations/$catId/$lessonId/roleplay';
+  static String rolePlayPlayer(int catId, int lessonId, String character) =>
+      '/conversations/$catId/$lessonId/roleplay/${Uri.encodeComponent(character)}';
 
   static const achievements               = '/profile/achievements';
 }

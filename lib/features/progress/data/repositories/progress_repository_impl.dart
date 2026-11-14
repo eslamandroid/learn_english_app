@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:injectable/injectable.dart';
 
+import '../../domain/entities/conversation_progress.dart';
 import '../../domain/entities/grammar_progress.dart';
 import '../../domain/entities/phonetics_progress.dart';
 import '../../domain/entities/sentence_lesson_progress.dart';
@@ -130,6 +131,33 @@ class ProgressRepositoryImpl implements ProgressRepository {
       seen: seen,
       total: total,
     );
+    _changes.add(null);
+  }
+
+  // ─── Conversation ────────────────────────────────────────────────────
+  @override
+  Future<ConversationProgress> getConversationProgress() async {
+    return ConversationProgress(
+      completedLessonIds: await _local.getCompletedConversationLessons(),
+      inProgressLessonId: await _local.getInProgressConversationLesson(),
+    );
+  }
+
+  @override
+  Future<void> markConversationLessonStarted(int lessonId) async {
+    final completed = await _local.getCompletedConversationLessons();
+    if (completed.contains(lessonId)) return;
+    final existing = await _local.getInProgressConversationLesson();
+    if (existing == lessonId) return;
+    await _local.setInProgressConversationLesson(lessonId);
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> markConversationLessonCompleted(int lessonId) async {
+    final completed = await _local.getCompletedConversationLessons();
+    if (completed.contains(lessonId)) return;
+    await _local.markConversationLessonCompleted(lessonId);
     _changes.add(null);
   }
 

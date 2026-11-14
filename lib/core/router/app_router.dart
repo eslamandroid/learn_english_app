@@ -14,6 +14,11 @@ import '../../features/phonetics/presentation/screens/phonetics_detail_screen.da
 import '../../features/phonetics/presentation/screens/phonetics_topics_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/shell/presentation/screens/main_shell_screen.dart';
+import '../../features/conversation/presentation/screens/conversation_categories_screen.dart';
+import '../../features/conversation/presentation/screens/role_play_player_screen.dart';
+import '../../features/conversation/presentation/screens/role_play_select_screen.dart';
+import '../../features/conversation/presentation/screens/conversation_lessons_screen.dart';
+import '../../features/conversation/presentation/screens/conversation_player_screen.dart';
 import '../../features/dictionary/presentation/screens/dictionary_screen.dart';
 import '../../features/sentences/presentation/screens/sentence_content_screen.dart';
 import '../../features/sentences/presentation/screens/sentence_topics_screen.dart';
@@ -206,7 +211,66 @@ abstract class AppRouter {
                 path: AppRoutes.conversations,
                 name: 'conversations',
                 builder: (context, state) =>
-                    const _PlaceholderScreen(label: 'Conversations'),
+                    const ConversationCategoriesScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':catId',
+                    name: 'conversationLessons',
+                    builder: (context, state) => ConversationLessonsScreen(
+                      categoryId:
+                          int.parse(state.pathParameters['catId']!),
+                      categoryTitle: state.extra is String
+                          ? state.extra as String
+                          : null,
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: ':lessonId',
+                        name: 'conversationPlayer',
+                        builder: (context, state) =>
+                            ConversationPlayerScreen(
+                          lessonId:
+                              int.parse(state.pathParameters['lessonId']!),
+                          lessonTitle: state.extra is String
+                              ? state.extra as String
+                              : null,
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'roleplay',
+                            name: 'rolePlaySelect',
+                            builder: (context, state) =>
+                                RolePlaySelectScreen(
+                              categoryId: int.parse(
+                                  state.pathParameters['catId']!),
+                              lessonId: int.parse(
+                                  state.pathParameters['lessonId']!),
+                              lessonTitle: state.extra is String
+                                  ? state.extra as String
+                                  : null,
+                            ),
+                            routes: [
+                              GoRoute(
+                                path: ':character',
+                                name: 'rolePlayPlayer',
+                                builder: (context, state) =>
+                                    RolePlayPlayerScreen(
+                                  lessonId: int.parse(
+                                      state.pathParameters['lessonId']!),
+                                  character: Uri.decodeComponent(
+                                      state.pathParameters['character']!),
+                                  lessonTitle: state.extra is String
+                                      ? state.extra as String
+                                      : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
@@ -239,19 +303,6 @@ abstract class AppRouter {
       ),
     ],
   );
-}
-
-class _PlaceholderScreen extends StatelessWidget {
-  final String label;
-  const _PlaceholderScreen({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(label)),
-      body: Center(child: Text('$label screen — not yet implemented')),
-    );
-  }
 }
 
 class _ErrorScreen extends StatelessWidget {

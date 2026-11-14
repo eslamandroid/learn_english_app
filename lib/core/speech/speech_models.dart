@@ -36,10 +36,23 @@ class SpeechRecognitionUpdate {
   /// Set only when [status] is [SpeechStatus.failed].
   final SpeechFailure? failure;
 
+  /// Absolute path to the microphone recording captured in parallel with
+  /// this session. Only populated when [isFinalSegment] is true AND the
+  /// recorder actually produced a file. Partial updates (segments mid-
+  /// session, status transitions) always leave this `null`.
+  ///
+  /// A null value on a final segment is normal — a permission denial, a
+  /// recorder-start failure, or running on a platform without the record
+  /// plugin all leave recording unavailable without affecting the STT
+  /// result. Callers should treat `null` as "no replay available" rather
+  /// than an error.
+  final String? recordingPath;
+
   const SpeechRecognitionUpdate({
     required this.text,
     required this.isFinalSegment,
     required this.status,
     this.failure,
+    this.recordingPath,
   });
 }

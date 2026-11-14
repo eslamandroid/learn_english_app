@@ -77,7 +77,11 @@ class PronunciationBloc extends Bloc<PronunciationEvent, PronunciationState> {
     };
 
     final attempts = Map<int, PronunciationAttempt>.from(state.attempts)
-      ..[id] = PronunciationAttempt(outcome: outcome, heard: heard);
+      ..[id] = PronunciationAttempt(
+        outcome: outcome,
+        heard: heard,
+        recordingPath: update.recordingPath,
+      );
 
     emit(state.copyWith(clearActiveExample: true, attempts: attempts));
     unawaited(_sub?.cancel());

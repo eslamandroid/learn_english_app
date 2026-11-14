@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:learn_english_app/base/extensions/extensions.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/speech/speech_debug_flags.dart';
 import '../../../../core/theme/bayan_colors.dart';
 import '../../../../core/theme/bayan_typography.dart';
 import '../../../../core/utils/content_language.dart';
@@ -154,6 +156,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const _LogoutRow(),
             ],
           ),
+          // Developer tools — only built in debug. In release the entire
+          // block is tree-shaken by the `kDebugMode` const, so no section
+          // header, no card, no state (TASK 12.3 §2).
+          if (kDebugMode) ...[
+            const SizedBox(height: AppConstants.spacingXl),
+            const _SectionLabel('DEVELOPER'),
+            _Card(
+              children: const [
+                _ParallelRecordingToggleRow(),
+              ],
+            ),
+          ],
           const SizedBox(height: AppConstants.spacingLg),
           Center(
             child: Text(
@@ -254,6 +268,37 @@ class _ShowArabicRow extends StatelessWidget {
             value: visible,
             activeThumbColor: BayanColors.primary,
             onChanged: AppContentLanguage.instance.setShowArabic,
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Debug-only toggle that disables the parallel [AudioRecorder] inside
+/// [SpeechRecognitionService] so we can measure whether STT behaves
+/// differently without the mic contention (TASK 12.3 §2).
+///
+/// Deliberately English-only (no l10n) — this is a developer affordance,
+/// not a product feature, and will never ship to end users.
+class _ParallelRecordingToggleRow extends StatelessWidget {
+  const _ParallelRecordingToggleRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: SpeechDebugFlags.parallelRecording,
+      builder: (context, enabled, _) {
+        return SettingsRow(
+          icon: Icons.science_outlined,
+          title: 'Parallel recorder',
+          subtitle: enabled
+              ? 'ON — hearing-your-own-voice available (default)'
+              : 'OFF — STT only; replay disabled for the test',
+          trailing: Switch.adaptive(
+            value: enabled,
+            activeThumbColor: BayanColors.primary,
+            onChanged: (v) => SpeechDebugFlags.parallelRecording.value = v,
           ),
         );
       },

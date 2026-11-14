@@ -85,26 +85,34 @@ class SentencePracticeBloc
 
     final heard = update.text.trim();
 
-    // Mirror PronunciationBloc's failure-case handling exactly.
+    // Mirror PronunciationBloc's failure-case handling exactly. The parallel
+    // recording path (if any) rides on every outcome — even noSpeech /
+    // denied, since the user might still want to hear what their mic picked
+    // up before giving up.
+    final recordingPath = update.recordingPath;
     final attempt = switch (update.failure) {
       SpeechFailure.permissionDenied => SentencePracticeAttempt(
           outcome: SentencePracticeOutcome.permissionDenied,
           heard: heard,
+          recordingPath: recordingPath,
         ),
       SpeechFailure.unavailable ||
       SpeechFailure.unrecoverable =>
         SentencePracticeAttempt(
           outcome: SentencePracticeOutcome.unavailable,
           heard: heard,
+          recordingPath: recordingPath,
         ),
       null => heard.isEmpty
           ? SentencePracticeAttempt(
               outcome: SentencePracticeOutcome.noSpeech,
               heard: heard,
+              recordingPath: recordingPath,
             )
           : SentencePracticeAttempt(
               outcome: SentencePracticeOutcome.assessed,
               heard: heard,
+              recordingPath: recordingPath,
               assessment:
                   SentenceAssessor.assess(heard, _targetSentence),
             ),
