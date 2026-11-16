@@ -132,6 +132,7 @@ class _ConversationChatBodyState extends State<ConversationChatBody> {
                             : () => practiceBloc.add(StartSentenceCheck(
                                   sentenceId: line.id,
                                   targetSentence: line.english,
+                                  continuous: true,
                                 )),
                       ),
                     );

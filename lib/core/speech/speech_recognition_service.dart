@@ -103,7 +103,10 @@ class SpeechRecognitionService {
   int _consecutiveEmptyRestarts = 0;
   static const _maxConsecutiveEmptyRestarts = 3;
   static const _restartDebounce = Duration(milliseconds: 300);
-  static const _maxSessionDuration = Duration(minutes: 2);
+  /// Hard cap on a continuous session. Conversation lines are a few seconds
+  /// long and the practice bloc auto-stops once the transcript settles, so
+  /// anything still open at 45 s is a forgotten mic, not a learner mid-line.
+  static const _maxSessionDuration = Duration(seconds: 45);
 
   /// On some devices the engine's `done`/`notListening` status fires up to
   /// a couple of seconds *before* the actual final `onResult` callback
@@ -760,6 +763,16 @@ class SpeechRecognitionService {
 
   void _scheduleRestart() {
     if (_userStopped) return;
+
+    // A segment can end (status `done`, or error_speech_timeout) without
+    // the engine ever delivering a final result for what it had already
+    // recognized as partials. Those words are real speech — promote the
+    // rolling partial into the committed transcript so the restart appends
+    // to it instead of silently dropping the tail of the user's sentence.
+    if (_lastPartial.length > _accumulated.length) {
+      _accumulated = _lastPartial;
+      _consecutiveEmptyRestarts = 0;
+    }
 
     _consecutiveEmptyRestarts++;
     if (_consecutiveEmptyRestarts > _maxConsecutiveEmptyRestarts) {

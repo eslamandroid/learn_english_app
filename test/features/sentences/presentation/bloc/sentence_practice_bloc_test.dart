@@ -48,6 +48,121 @@ void main() {
     ).called(1),
   );
 
+  // ── Continuous mode (conversation screens) ─────────────────────────────────
+
+  blocTest<SentencePracticeBloc, SentencePracticeState>(
+    'StartSentenceCheck(continuous: true) starts speech in continuous mode',
+    build: buildBloc,
+    act: (bloc) => bloc.add(const StartSentenceCheck(
+      sentenceId: 1,
+      targetSentence: 'Hello, how are you today',
+      continuous: true,
+    )),
+    verify: (_) => verify(
+      () => mockSpeech.start(continuous: true),
+    ).called(1),
+  );
+
+  blocTest<SentencePracticeBloc, SentencePracticeState>(
+    'continuous: restarting update with empty text keeps last partial',
+    build: buildBloc,
+    act: (bloc) async {
+      bloc.add(const StartSentenceCheck(
+        sentenceId: 2,
+        targetSentence: 'Hello world',
+        continuous: true,
+      ));
+      await Future.delayed(Duration.zero);
+      bloc.add(SentenceSpeechUpdated(const SpeechRecognitionUpdate(
+        text: 'hello',
+        isFinalSegment: false,
+        status: SpeechStatus.listening,
+      )));
+      await Future.delayed(Duration.zero);
+      bloc.add(SentenceSpeechUpdated(const SpeechRecognitionUpdate(
+        text: '',
+        isFinalSegment: false,
+        status: SpeechStatus.restarting,
+      )));
+    },
+    expect: () => [
+      isA<SentencePracticeState>().having((s) => s.activeSentenceId, 'id', 2),
+      isA<SentencePracticeState>()
+          .having((s) => s.partialText, 'partialText', 'hello'),
+      isA<SentencePracticeState>()
+          .having((s) => s.partialText, 'partialText (kept)', 'hello')
+          .having((s) => s.armed, 'armed', true),
+    ],
+  );
+
+  blocTest<SentencePracticeBloc, SentencePracticeState>(
+    'continuous: auto-stops once transcript settles and covers the target',
+    build: buildBloc,
+    act: (bloc) async {
+      bloc.add(const StartSentenceCheck(
+        sentenceId: 3,
+        targetSentence: 'Hello, how are you today?',
+        continuous: true,
+      ));
+      await Future.delayed(Duration.zero);
+      bloc.add(SentenceSpeechUpdated(const SpeechRecognitionUpdate(
+        text: 'hello how are you',
+        isFinalSegment: false,
+        status: SpeechStatus.listening,
+      )));
+    },
+    wait: const Duration(milliseconds: 2700),
+    verify: (_) => verify(() => mockSpeech.stop()).called(1),
+  );
+
+  blocTest<SentencePracticeBloc, SentencePracticeState>(
+    'continuous: does NOT auto-stop while coverage is low',
+    build: buildBloc,
+    act: (bloc) async {
+      bloc.add(const StartSentenceCheck(
+        sentenceId: 4,
+        targetSentence: 'Hello, how are you today?',
+        continuous: true,
+      ));
+      await Future.delayed(Duration.zero);
+      bloc.add(SentenceSpeechUpdated(const SpeechRecognitionUpdate(
+        text: 'hello',
+        isFinalSegment: false,
+        status: SpeechStatus.listening,
+      )));
+    },
+    wait: const Duration(milliseconds: 2700),
+    verify: (_) => verifyNever(() => mockSpeech.stop()),
+  );
+
+  blocTest<SentencePracticeBloc, SentencePracticeState>(
+    'single-utterance mode never auto-stops',
+    build: buildBloc,
+    act: (bloc) async {
+      bloc.add(const StartSentenceCheck(
+        sentenceId: 5,
+        targetSentence: 'Hello world',
+      ));
+      await Future.delayed(Duration.zero);
+      bloc.add(SentenceSpeechUpdated(const SpeechRecognitionUpdate(
+        text: 'hello world',
+        isFinalSegment: false,
+        status: SpeechStatus.listening,
+      )));
+    },
+    wait: const Duration(milliseconds: 2700),
+    verify: (_) => verifyNever(() => mockSpeech.stop()),
+  );
+
+  test('coverage ignores case and punctuation', () {
+    expect(
+      SentencePracticeBloc.coverage('hello how are you', 'Hello, how are you today?'),
+      closeTo(0.8, 0.001),
+    );
+    expect(SentencePracticeBloc.coverage('', 'Hi'), 0);
+    expect(SentencePracticeBloc.coverage('anything', ''), 1);
+  });
+
   // ── Partial update (mid-speech) ────────────────────────────────────────────
 
   blocTest<SentencePracticeBloc, SentencePracticeState>(

@@ -88,6 +88,7 @@ class _ConversationPagerBodyState extends State<ConversationPagerBody> {
                             : () => practiceBloc.add(StartSentenceCheck(
                                   sentenceId: line.id,
                                   targetSentence: line.english,
+                                  continuous: true,
                                 )),
                       );
                     },

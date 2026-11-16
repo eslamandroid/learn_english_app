@@ -307,6 +307,7 @@ class _RolePlayBodyState extends State<_RolePlayBody> {
                 ..add(StartSentenceCheck(
                   sentenceId: line.id,
                   targetSentence: line.english,
+                  continuous: true,
                 ));
             roleBloc.add(const RolePlayStartUserMic());
           }

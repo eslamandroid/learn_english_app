@@ -13,13 +13,27 @@ class StartSentenceCheck extends SentencePracticeEvent {
   final int sentenceId;
   final String targetSentence;
 
+  /// `false` (default) = single-utterance capture: the engine's first final
+  /// result ends the session. Right for one short sentence on the Sentences
+  /// screen.
+  ///
+  /// `true` = dictation mode with auto-restart across pauses and the
+  /// engine's own segment limits. Required for conversation lines, which
+  /// are longer and contain natural pauses — in single-utterance mode the
+  /// recognizer cut them off mid-sentence. When `true` the bloc also stops
+  /// the session on its own once the transcript has settled and covers the
+  /// target (see [SentencePracticeBloc]), so the user doesn't have to tap
+  /// the mic again.
+  final bool continuous;
+
   const StartSentenceCheck({
     required this.sentenceId,
     required this.targetSentence,
+    this.continuous = false,
   });
 
   @override
-  List<Object?> get props => [sentenceId, targetSentence];
+  List<Object?> get props => [sentenceId, targetSentence, continuous];
 }
 
 /// User tapped mic again to stop early.
