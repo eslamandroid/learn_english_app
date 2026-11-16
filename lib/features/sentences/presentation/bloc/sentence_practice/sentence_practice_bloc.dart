@@ -22,15 +22,23 @@ class SentencePracticeBloc
   bool _continuous = false;
 
   /// Auto-stop for continuous sessions. The service's own `pauseFor` is
-  /// deliberately long (it exists to NOT cut the user off), so without this
-  /// a learner who finished the line would sit through pauseFor + grace
-  /// before seeing a result. Instead: once the rolling transcript has not
-  /// changed for [_settleDelay] AND it already covers [_coverageToStop] of
-  /// the target's words, we stop the session ourselves. If the user is
-  /// still talking the transcript keeps changing and the timer keeps being
-  /// pushed back, so this never cuts a sentence short.
+  /// deliberately long (it exists to NOT cut the user off), and in
+  /// continuous mode a silent segment just restarts, so without this a
+  /// learner who finished talking would wait through several restart
+  /// cycles before seeing a result. Instead the bloc watches the rolling
+  /// transcript and stops the session itself once it has stopped changing:
+  ///
+  ///  - after [_settleDelayCovered] when it already covers
+  ///    [_coverageToStop] of the target words (the normal "said the line"
+  ///    case — snappy), or
+  ///  - after [_settleDelayAny] otherwise (said one word, a wrong line, or
+  ///    nothing — still assessed, never left hanging).
+  ///
+  /// While the user is still talking the transcript keeps changing and the
+  /// timer keeps being pushed back, so this never cuts a sentence short.
   Timer? _settleTimer;
-  static const _settleDelay = Duration(milliseconds: 2500);
+  static const _settleDelayCovered = Duration(milliseconds: 2500);
+  static const _settleDelayAny = Duration(seconds: 4);
   static const _coverageToStop = 0.7;
 
   /// Word-coverage of [target] by [heard]: fraction of distinct target
@@ -108,8 +116,10 @@ class SentencePracticeBloc
   void _armSettleTimer(String partial) {
     _settleTimer?.cancel();
     if (!_continuous) return;
-    if (coverage(partial, _targetSentence) < _coverageToStop) return;
-    _settleTimer = Timer(_settleDelay, () {
+    if (partial.trim().isEmpty) return;
+    final covered = coverage(partial, _targetSentence) >= _coverageToStop;
+    final delay = covered ? _settleDelayCovered : _settleDelayAny;
+    _settleTimer = Timer(delay, () {
       if (isClosed || state.activeSentenceId == null) return;
       add(const StopSentenceCheck());
     });

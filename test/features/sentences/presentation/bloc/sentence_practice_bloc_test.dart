@@ -116,7 +116,27 @@ void main() {
   );
 
   blocTest<SentencePracticeBloc, SentencePracticeState>(
-    'continuous: does NOT auto-stop while coverage is low',
+    'continuous: low coverage (one word) still auto-stops after 4s',
+    build: buildBloc,
+    act: (bloc) async {
+      bloc.add(const StartSentenceCheck(
+        sentenceId: 6,
+        targetSentence: 'Hello, how are you today?',
+        continuous: true,
+      ));
+      await Future.delayed(Duration.zero);
+      bloc.add(SentenceSpeechUpdated(const SpeechRecognitionUpdate(
+        text: 'body',
+        isFinalSegment: false,
+        status: SpeechStatus.listening,
+      )));
+    },
+    wait: const Duration(milliseconds: 4200),
+    verify: (_) => verify(() => mockSpeech.stop()).called(1),
+  );
+
+  blocTest<SentencePracticeBloc, SentencePracticeState>(
+    'continuous: does NOT auto-stop early while coverage is low',
     build: buildBloc,
     act: (bloc) async {
       bloc.add(const StartSentenceCheck(
