@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/speech/sentence_assessment.dart';
 import '../../../../core/theme/bayan_colors.dart';
 import '../../../../core/theme/bayan_typography.dart';
 import '../../../../shared/widgets/arabic_visibility.dart';
@@ -19,6 +20,17 @@ class RolePlayYourTurnCard extends StatelessWidget {
   final VoidCallback onPreview;
   final VoidCallback onMicTap;
 
+  /// Transcript of the user's last (failed) attempt at this line, or null
+  /// when there is none yet. Shown so the learner can see what the
+  /// recognizer heard instead of retrying blind.
+  final String? lastHeard;
+
+  /// Grading of [lastHeard]; drives the per-word highlight.
+  final SentenceAssessment? lastAssessment;
+
+  /// Non-null once skipping is allowed (after a couple of failed tries).
+  final VoidCallback? onSkip;
+
   const RolePlayYourTurnCard({
     super.key,
     required this.line,
@@ -26,6 +38,9 @@ class RolePlayYourTurnCard extends StatelessWidget {
     required this.isPreviewPlaying,
     required this.onPreview,
     required this.onMicTap,
+    this.lastHeard,
+    this.lastAssessment,
+    this.onSkip,
   });
 
   @override
@@ -97,6 +112,13 @@ class RolePlayYourTurnCard extends StatelessWidget {
                   ),
                 ),
               ),
+            if (lastAssessment != null && !isChecking) ...[
+              const SizedBox(height: 12),
+              _AttemptFeedback(
+                heard: lastHeard ?? '',
+                assessment: lastAssessment!,
+              ),
+            ],
             const SizedBox(height: 18),
             Center(child: _PulsingMic(active: isChecking, onTap: onMicTap)),
             const SizedBox(height: 10),
@@ -104,15 +126,117 @@ class RolePlayYourTurnCard extends StatelessWidget {
               child: Text(
                 isChecking
                     ? 'Listening… say your line'
-                    : 'Tap and say your line',
+                    : lastAssessment != null
+                        ? 'Tap and try again'
+                        : 'Tap and say your line',
                 style: BayanTypography.bodySmall.copyWith(
                   color: BayanColors.textMuted,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ),
+            if (onSkip != null && !isChecking) ...[
+              const SizedBox(height: 4),
+              Center(
+                child: TextButton(
+                  onPressed: onSkip,
+                  child: Text(
+                    'Skip this line',
+                    style: BayanTypography.bodySmall.copyWith(
+                      color: BayanColors.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// "YOU SAID · 71%" box: the target line with the words the recognizer
+/// missed highlighted, plus the raw transcript underneath. Same visual
+/// language as the Sentences screen's result box so the learner reads it
+/// the same way everywhere.
+class _AttemptFeedback extends StatelessWidget {
+  final String heard;
+  final SentenceAssessment assessment;
+
+  const _AttemptFeedback({required this.heard, required this.assessment});
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = (assessment.score * 100).round();
+    final missed = assessment.wordsToRetry.length;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: BoxDecoration(
+        color: BayanColors.warnTint,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: BayanColors.warn, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            missed == 1
+                ? 'YOU SAID · $pct% · 1 word to fix'
+                : 'YOU SAID · $pct% · $missed words to fix',
+            style: BayanTypography.labelMedium.copyWith(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              color: BayanColors.warnFg,
+              letterSpacing: 0.06 * 10.5,
+            ),
+          ),
+          const SizedBox(height: 6),
+          // Target line, word by word — missed words stand out.
+          Wrap(
+            spacing: 4,
+            runSpacing: 2,
+            children: [
+              for (final w in assessment.words)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  decoration: w.isCorrect
+                      ? null
+                      : BoxDecoration(
+                          color: const Color(0xFFFFD59A),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                  child: Text(
+                    w.word,
+                    style: BayanTypography.bodyMedium.copyWith(
+                      fontSize: 15,
+                      fontWeight: w.isCorrect ? FontWeight.w600 : FontWeight.w800,
+                      color: w.isCorrect
+                          ? BayanColors.onSurfaceVariant
+                          : BayanColors.onSurface,
+                      decoration: w.isCorrect
+                          ? TextDecoration.none
+                          : TextDecoration.underline,
+                      decorationStyle: TextDecorationStyle.wavy,
+                      decorationColor: const Color(0xFFC2410C),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          if (heard.trim().isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Heard: "${heard.trim()}"',
+              style: BayanTypography.bodySmall.copyWith(
+                color: BayanColors.warnFg,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

@@ -291,10 +291,26 @@ class _RolePlayBodyState extends State<_RolePlayBody> {
     }
     if (index == state.currentIndex) {
       final preview = state.playingLineId == line.id;
+      // watch (not read): the failed-attempt box must repaint when the
+      // practice bloc records a new attempt, independent of RolePlayState.
+      final lastAttempt =
+          ctx.watch<SentencePracticeBloc>().state.attempts[line.id];
+      final failedAssessment = (lastAttempt != null &&
+              lastAttempt.outcome == SentencePracticeOutcome.assessed &&
+              lastAttempt.assessment != null &&
+              !lastAttempt.assessment!.passed)
+          ? lastAttempt.assessment
+          : null;
+      final failedTries = state.results[line.id]?.attempts ?? 0;
       return RolePlayYourTurnCard(
         line: line,
         isChecking: state.phase == RolePlayPhase.checking,
         isPreviewPlaying: preview,
+        lastHeard: failedAssessment == null ? null : lastAttempt?.heard,
+        lastAssessment: failedAssessment,
+        onSkip: failedTries >= RolePlayBloc.skipAfterAttempts
+            ? () => roleBloc.add(const RolePlaySkipLine())
+            : null,
         onPreview: () => roleBloc.add(const RolePlayPreviewUserLine()),
         onMicTap: () {
           if (state.phase == RolePlayPhase.checking) {
@@ -386,6 +402,9 @@ class _PassedUserBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pct = ((result?.bestScore ?? 0) * 100).round();
+    final skipped = result?.skipped ?? false;
+    final tint = skipped ? BayanColors.textMuted : BayanColors.successStrong;
+    final fg = skipped ? BayanColors.textMuted : BayanColors.successFg;
     return Align(
       alignment: Alignment.centerRight,
       child: ConstrainedBox(
@@ -395,10 +414,10 @@ class _PassedUserBubble extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
           decoration: BoxDecoration(
-            color: BayanColors.successStrong.withValues(alpha: 0.10),
+            color: tint.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: BayanColors.successStrong.withValues(alpha: 0.35),
+              color: tint.withValues(alpha: 0.35),
               width: 1,
             ),
           ),
@@ -417,13 +436,18 @@ class _PassedUserBubble extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.check_circle_rounded,
-                      size: 14, color: BayanColors.successFg),
+                  Icon(
+                    skipped
+                        ? Icons.skip_next_rounded
+                        : Icons.check_circle_rounded,
+                    size: 14,
+                    color: fg,
+                  ),
                   const SizedBox(width: 4),
                   Text(
-                    'You said this · $pct%',
+                    skipped ? 'Skipped · best $pct%' : 'You said this · $pct%',
                     style: BayanTypography.bodySmall.copyWith(
-                      color: BayanColors.successFg,
+                      color: fg,
                       fontWeight: FontWeight.w800,
                       fontSize: 12,
                     ),

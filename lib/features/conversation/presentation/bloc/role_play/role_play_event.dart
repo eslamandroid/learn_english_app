@@ -56,6 +56,13 @@ class RolePlayUserAttemptResult extends RolePlayEvent {
 
 /// "Try again" on the result screen — reset results + rewind to line 0 with
 /// the same character selection.
+/// User chose to move past the current line without a passing attempt.
+/// Offered after [RolePlayBloc.skipAfterAttempts] failed tries so one hard
+/// line can't block the whole conversation.
+class RolePlaySkipLine extends RolePlayEvent {
+  const RolePlaySkipLine();
+}
+
 class RolePlayRestart extends RolePlayEvent {
   const RolePlayRestart();
 }

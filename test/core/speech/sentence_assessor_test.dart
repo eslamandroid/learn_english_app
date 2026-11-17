@@ -3,6 +3,35 @@ import 'package:learn_english_app/core/speech/sentence_assessor.dart';
 import 'package:learn_english_app/core/speech/sentence_assessment.dart';
 
 void main() {
+  // ── Contractions / apostrophes ─────────────────────────────────────────────
+
+  test("I'm in script vs 'I am' from recognizer → passes", () {
+    final r = SentenceAssessor.assess("I am a student too", "I'm a student too.");
+    expect(r.passed, isTrue, reason: 'score=${r.score}');
+    expect(r.words.every((w) => w.isCorrect), isTrue);
+  });
+
+  test("curly apostrophe (U+2019) in script and straight in transcript", () {
+    final r = SentenceAssessor.assess("I'm a student too", "I’m a student too.");
+    expect(r.score, 1.0);
+  });
+
+  test("'I am' in script vs I'm from recognizer → passes", () {
+    final r = SentenceAssessor.assess("I'm good", 'I am good.');
+    expect(r.passed, isTrue);
+  });
+
+  test("don't / do not are equivalent", () {
+    expect(SentenceAssessor.assess("I do not know", "I don't know.").score, 1.0);
+    expect(SentenceAssessor.assess("I don't know", 'I do not know.').score, 1.0);
+  });
+
+  test('a genuinely wrong content word still fails', () {
+    final r = SentenceAssessor.assess("I'm a teacher too", "I'm a student too.");
+    expect(r.passed, isFalse);
+    expect(r.wordsToRetry, ['student']);
+  });
+
   // ── Exact match ────────────────────────────────────────────────────────────
 
   test('exact match → score 1.0 and passed', () {

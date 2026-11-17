@@ -274,13 +274,27 @@ class _LineRow extends StatelessWidget {
     final passedFirst = r?.passedFirstTry ?? false;
     final attempts = r?.attempts ?? 0;
     final pct = ((r?.bestScore ?? 0) * 100).round();
-    final chipBg =
-        passedFirst ? BayanColors.successTint : BayanColors.warnTint;
-    final chipFg = passedFirst ? BayanColors.successFg : BayanColors.warnFg;
-    final chipIcon =
-        passedFirst ? Icons.check_rounded : Icons.refresh_rounded;
-    final chipLabel =
-        passedFirst ? '$pct% · first try' : '$attempts tries · $pct%';
+    final skipped = r?.skipped ?? false;
+    final chipBg = skipped
+        ? BayanColors.divider
+        : passedFirst
+            ? BayanColors.successTint
+            : BayanColors.warnTint;
+    final chipFg = skipped
+        ? BayanColors.textMuted
+        : passedFirst
+            ? BayanColors.successFg
+            : BayanColors.warnFg;
+    final chipIcon = skipped
+        ? Icons.skip_next_rounded
+        : passedFirst
+            ? Icons.check_rounded
+            : Icons.refresh_rounded;
+    final chipLabel = skipped
+        ? (attempts == 0 ? 'skipped' : 'skipped · best $pct%')
+        : passedFirst
+            ? '$pct% · first try'
+            : '$attempts tries · $pct%';
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),

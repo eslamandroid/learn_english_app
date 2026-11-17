@@ -35,26 +35,33 @@ class RoleLineResult extends Equatable {
   /// True iff the user passed this line on their first attempt (`attempts == 1`).
   final bool passedFirstTry;
 
+  /// True when the user moved on without a passing attempt (via "Skip").
+  /// [bestScore] still holds their best try so the summary can show it.
+  final bool skipped;
+
   const RoleLineResult({
     required this.bestScore,
     required this.attempts,
     required this.passedFirstTry,
+    this.skipped = false,
   });
 
   RoleLineResult copyWith({
     double? bestScore,
     int? attempts,
     bool? passedFirstTry,
+    bool? skipped,
   }) {
     return RoleLineResult(
       bestScore: bestScore ?? this.bestScore,
       attempts: attempts ?? this.attempts,
       passedFirstTry: passedFirstTry ?? this.passedFirstTry,
+      skipped: skipped ?? this.skipped,
     );
   }
 
   @override
-  List<Object?> get props => [bestScore, attempts, passedFirstTry];
+  List<Object?> get props => [bestScore, attempts, passedFirstTry, skipped];
 }
 
 class RolePlayState extends Equatable {

@@ -180,6 +180,61 @@ void main() {
   );
 
   blocTest<RolePlayBloc, RolePlayState>(
+    'skip after failed attempts → result marked skipped, best score kept, '
+    'pointer advances',
+    build: () {
+      when(() => getLines.execute(lessonId: any(named: 'lessonId')))
+          .thenAnswer((_) async => Right([_line(1, 'James'), _line(2, 'Lisa')]));
+      return build();
+    },
+    act: (b) async {
+      b.add(const LoadRolePlay(lessonId: 1, character: 'James'));
+      await Future<void>.delayed(Duration.zero);
+      b.add(RolePlayUserAttemptResult(
+        lineId: 1,
+        assessment: _assessment(passed: false, score: 0.40),
+      ));
+      await Future<void>.delayed(Duration.zero);
+      b.add(RolePlayUserAttemptResult(
+        lineId: 1,
+        assessment: _assessment(passed: false, score: 0.55),
+      ));
+      await Future<void>.delayed(Duration.zero);
+      b.add(const RolePlaySkipLine());
+      await Future<void>.delayed(Duration.zero);
+    },
+    verify: (b) {
+      final r = b.state.results[1];
+      expect(r!.skipped, isTrue);
+      expect(r.attempts, 2);
+      expect(r.passedFirstTry, isFalse);
+      expect(r.bestScore, closeTo(0.55, 1e-6));
+      expect(b.state.currentIndex, greaterThan(0));
+    },
+  );
+
+  blocTest<RolePlayBloc, RolePlayState>(
+    'skip is ignored while checking',
+    build: () {
+      when(() => getLines.execute(lessonId: any(named: 'lessonId')))
+          .thenAnswer((_) async => Right([_line(1, 'James'), _line(2, 'Lisa')]));
+      return build();
+    },
+    act: (b) async {
+      b.add(const LoadRolePlay(lessonId: 1, character: 'James'));
+      await Future<void>.delayed(Duration.zero);
+      b.add(const RolePlayStartUserMic());
+      await Future<void>.delayed(Duration.zero);
+      b.add(const RolePlaySkipLine());
+      await Future<void>.delayed(Duration.zero);
+    },
+    verify: (b) {
+      expect(b.state.currentIndex, 0);
+      expect(b.state.results[1], isNull);
+    },
+  );
+
+  blocTest<RolePlayBloc, RolePlayState>(
     'consecutive non-user lines flow through without a waitingForUser pause',
     build: () {
       when(() => getLines.execute(lessonId: any(named: 'lessonId')))

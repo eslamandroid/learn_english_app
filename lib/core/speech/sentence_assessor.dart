@@ -28,6 +28,8 @@ class SentenceAssessor {
     'it', 'its', "it's", 'do', 'does', 'did', 'has', 'have', 'had',
     'i', 'you', 'he', 'she', 'we', 'they', 'my', 'your', 'his', 'her',
     'this', 'that', 'with', 'as', 'up',
+    // Halves produced by contraction expansion (see _contractions).
+    'am', 'not', 'will', 'would', 'us',
   };
 
   static SentenceAssessment assess(
@@ -168,10 +170,41 @@ class SentenceAssessor {
     return prev[m];
   }
 
+  /// Contractions expanded on BOTH sides before alignment, so "I'm" in the
+  /// script and "I am" from the recognizer (or the reverse) grade as the
+  /// same words. Without this, "I'm a student too" failed whenever iOS
+  /// returned "I am …": "i'm" vs "i" is 2 edits, the tolerance for a
+  /// 3-letter word is 1, and the miss on a full-weight word pulled the
+  /// score under the pass line.
+  static const Map<String, String> _contractions = {
+    "i'm": 'i am', "you're": 'you are', "we're": 'we are',
+    "they're": 'they are', "he's": 'he is', "she's": 'she is',
+    "it's": 'it is', "that's": 'that is', "there's": 'there is',
+    "what's": 'what is', "where's": 'where is', "who's": 'who is',
+    "how's": 'how is', "let's": 'let us',
+    "i've": 'i have', "you've": 'you have', "we've": 'we have',
+    "they've": 'they have',
+    "i'll": 'i will', "you'll": 'you will', "we'll": 'we will',
+    "they'll": 'they will', "he'll": 'he will', "she'll": 'she will',
+    "it'll": 'it will',
+    "i'd": 'i would', "you'd": 'you would', "we'd": 'we would',
+    "they'd": 'they would', "he'd": 'he would', "she'd": 'she would',
+    "don't": 'do not', "doesn't": 'does not', "didn't": 'did not',
+    "isn't": 'is not', "aren't": 'are not', "wasn't": 'was not',
+    "weren't": 'were not', "can't": 'can not', "cannot": 'can not',
+    "couldn't": 'could not', "won't": 'will not', "wouldn't": 'would not',
+    "shouldn't": 'should not', "haven't": 'have not', "hasn't": 'has not',
+    "hadn't": 'had not', "mustn't": 'must not',
+  };
+
   static List<String> _tokenize(String s) => s
       .toLowerCase()
+      // Curly / typographic apostrophes (the script DB and iOS both emit
+      // U+2019) → ASCII, so contractions match the table below.
+      .replaceAll(RegExp('[\u2018\u2019\u02BC`]'), "'")
       .replaceAll(RegExp(r"[^a-z0-9'\s]"), '')
       .split(RegExp(r'\s+'))
       .where((w) => w.isNotEmpty)
+      .expand((w) => (_contractions[w] ?? w).split(' '))
       .toList();
 }

@@ -41,6 +41,7 @@ class RolePlayBloc extends Bloc<RolePlayEvent, RolePlayState> {
     on<RolePlayStartUserMic>(_onStartMic);
     on<RolePlayStopUserMic>(_onStopMic);
     on<RolePlayUserAttemptResult>(_onAttemptResult);
+    on<RolePlaySkipLine>(_onSkipLine);
     on<RolePlayRestart>(_onRestart);
 
     _completionSub = _soundPlayer.completionStream.listen((_) {
@@ -182,6 +183,28 @@ class RolePlayBloc extends Bloc<RolePlayEvent, RolePlayState> {
     ));
     await Future<void>.delayed(passFlashDelay);
     if (isClosed) return;
+    await _advanceFrom(state.currentIndex + 1, emit: emit);
+  }
+
+  /// Failed attempts on a line before "Skip this line" is offered.
+  static const int skipAfterAttempts = 2;
+
+  Future<void> _onSkipLine(
+    RolePlaySkipLine event,
+    Emitter<RolePlayState> emit,
+  ) async {
+    if (state.phase != RolePlayPhase.waitingForUser) return;
+    final line = state.currentLine;
+    if (line == null) return;
+    final previous = state.results[line.id];
+    final updatedResults = Map<int, RoleLineResult>.from(state.results);
+    updatedResults[line.id] = RoleLineResult(
+      bestScore: previous?.bestScore ?? 0,
+      attempts: previous?.attempts ?? 0,
+      passedFirstTry: false,
+      skipped: true,
+    );
+    emit(state.copyWith(results: updatedResults));
     await _advanceFrom(state.currentIndex + 1, emit: emit);
   }
 
